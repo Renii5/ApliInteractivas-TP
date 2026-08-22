@@ -1,0 +1,30 @@
+package com.uade.tpo.e_commerce.service;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.uade.tpo.e_commerce.model.Producto;
+import com.uade.tpo.e_commerce.repository.ProductoRepository;
+
+import jakarta.transaction.Transactional;
+
+/**
+ * Capa donde reside la lógica de negocio y donde se manejan las transacciones.
+ * ProductoService
+ */
+@Service
+@Transactional
+public class ProductoService {
+
+    private final ProductoRepository productoRepository;
+
+    ProductoService(ProductoRepository productoRepository) {
+        this.productoRepository = productoRepository;
+    }
+
+    public List<Producto> getAllProductos() {
+        return productoRepository.findAll();
+    }
+
+}
