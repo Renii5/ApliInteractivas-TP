@@ -2,11 +2,14 @@ package com.uade.tpo.e_commerce.controller;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.uade.tpo.e_commerce.model.Producto;
+import com.uade.tpo.e_commerce.dto.ProductoResponseDTO;
 import com.uade.tpo.e_commerce.service.ProductoService;
 
 /**
@@ -26,8 +29,11 @@ public class ProductoController {
 
     //get http://localhost:8080/api/productos -> listar todos los productos
     @GetMapping
-    public List<Producto> getAllProductos() {
-        return productoService.getAllProductos();
+    public ResponseEntity<List<ProductoResponseDTO>> getAllProductos() {
+        System.out.println("\n\nCONTROLLER >> Fetching all productos DTO\n\n");
+        List<ProductoResponseDTO> productos = productoService.getAllProductos();
+        ResponseEntity<List<ProductoResponseDTO>> response = new ResponseEntity<>(productos, HttpStatus.OK);
+        return response;
     }
 
 }

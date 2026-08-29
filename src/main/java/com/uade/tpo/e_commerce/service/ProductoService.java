@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.uade.tpo.e_commerce.model.Producto;
+import com.uade.tpo.e_commerce.dto.ProductoResponseDTO;
 import com.uade.tpo.e_commerce.repository.ProductoRepository;
 
 import jakarta.transaction.Transactional;
@@ -23,8 +24,17 @@ public class ProductoService {
         this.productoRepository = productoRepository;
     }
 
-    public List<Producto> getAllProductos() {
-        return productoRepository.findAll();
+    public List<ProductoResponseDTO> getAllProductos() {
+        // return productoRepository.findAllProductosResponse();
+        System.out.println("\n\nSERVICE >> Fetching all productos DTO\n\n");
+        return productoRepository.findAll().stream()
+                        .map(producto -> new ProductoResponseDTO(
+                                producto.getId(),
+                                producto.getNombre(),
+                                producto.getDescription()
+                        ))
+                        .toList();
+
     }
 
 }

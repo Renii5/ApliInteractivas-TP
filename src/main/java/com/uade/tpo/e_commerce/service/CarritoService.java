@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.uade.tpo.e_commerce.dto.ProductoResponseDTO;
 import com.uade.tpo.e_commerce.model.CarritoProductos;
 import com.uade.tpo.e_commerce.model.Producto;
 import com.uade.tpo.e_commerce.repository.CarritoProductosRepository;
@@ -35,17 +36,25 @@ public class CarritoService {
      * Si el carrito no existe se responde 404, para distinguirlo
      * de un carrito que existe pero está vacío (lista vacía).
      */
-    public List<Producto> getProductosDelCarrito(Long carritoId) {
+    public List<ProductoResponseDTO> getProductosDelCarrito(Long carritoId) {
         if (!carritoRepository.existsById(carritoId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
                     "No existe el carrito con id " + carritoId);
         }
 
         // Cada fila de la tabla intermedia ya trae su Producto asociado
-        return carritoProductosRepository.findByCarritoId(carritoId)
+        List<Producto> productos = carritoProductosRepository.findByCarritoId(carritoId)
                 .stream()
                 .map(CarritoProductos::getProducto)
                 .toList();
+        List<ProductoResponseDTO> productos_dto = productos.stream()
+                .map(producto -> new ProductoResponseDTO(
+                        producto.getId(),
+                        producto.getNombre(),
+                        producto.getDescription()
+                ))
+                .toList();
+        return productos_dto;
     }
 
 }
