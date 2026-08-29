@@ -17,7 +17,8 @@ import lombok.NoArgsConstructor;
 @Table(name = "ventas")
 public class Ventas {
 
-    "replico esto: 
+    /*
+    replico esto: 
             CREATE TABLE IF NOT EXISTS ventas (
             id               INT AUTO_INCREMENT PRIMARY KEY,
             producto_id      BIGINT NOT NULL,
@@ -29,7 +30,8 @@ public class Ventas {
                 ON DELETE CASCADE
         );
     
-    "
+    
+    */
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

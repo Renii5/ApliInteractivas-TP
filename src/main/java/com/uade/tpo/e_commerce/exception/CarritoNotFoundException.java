@@ -1,13 +1,13 @@
 package com.uade.tpo.e_commerce.exception;
 
-public class carritoNotFoundException extends RuntimeException {
+public class CarritoNotFoundException extends RuntimeException {
     
-    public carritoNotFoundException(Long id) {
+    public CarritoNotFoundException(Long id) {
         super("No se encontró el carrito con id: " + id);
     }
 
     // Constructor: Acepta cualquier String como mensaje.
-    public carritoNotFoundException(String message) {
+    public CarritoNotFoundException(String message) {
         super(message);
     }    
 }

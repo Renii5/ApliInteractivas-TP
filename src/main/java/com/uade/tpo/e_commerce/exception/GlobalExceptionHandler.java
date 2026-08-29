@@ -12,7 +12,7 @@ public class GlobalExceptionHandler {
     // Anotación que indica que este método manejará las excepciones de tipo ProductoNotFoundException.
     @ExceptionHandler(ProductoNotFoundException.class)
     // Este método se ejecuta cuando se lanza una ProductoNotFoundException.
-    public ResponseEntity<String> manejarProductoNoEncontrado(ProductoNotFoundException ex) {
+    public ResponseEntity<String> ManejarProductoNoEncontrado(ProductoNotFoundException ex) {
 
         // Devuelve una respuesta con el código de estado HTTP 404 (Not Found) y un cuerpo con el mensaje "Producto no encontrado :)"
         //representa la respuesta HTTP completa que se envía desde tu controlador al cliente (navegador, aplicación móvil, etc.).
@@ -22,8 +22,8 @@ public class GlobalExceptionHandler {
         
     }
 
-    @ExceptionHandler(carritoNotFoundException.class)
-    public ResponseEntity<String> manejarCarritoNoEncontrado(carritoNotFoundException ex) {
+    @ExceptionHandler(CarritoNotFoundException.class)
+    public ResponseEntity<String> ManejarCarritoNoEncontrado(CarritoNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 

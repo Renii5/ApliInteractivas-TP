@@ -1,4 +1,4 @@
-package com.uade.tpo.e_commerce3.exception;
+package com.uade.tpo.e_commerce.exception;
 
 public class UsuarioNotFoundException {
     
