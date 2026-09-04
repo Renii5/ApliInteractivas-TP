@@ -56,5 +56,13 @@ public class CarritoService {
                 .toList();
         return productos_dto;
     }
+    
+        public void eliminarProducto(Long id) {
+        if (!productoRepository.existsById(id)) {
+            throw new ProductoNotFoundException("Producto no encontrado con ID: " + id);
+        }
+        productoRepository.deleteById(id);
+    }
+
 
 }
