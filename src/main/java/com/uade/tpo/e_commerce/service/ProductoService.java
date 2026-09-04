@@ -5,8 +5,10 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.uade.tpo.e_commerce.model.Producto;
+import com.uade.tpo.e_commerce.dto.ProductoRequestDTO;
 import com.uade.tpo.e_commerce.dto.ProductoResponseDTO;
 import com.uade.tpo.e_commerce.repository.ProductoRepository;
+import com.uade.tpo.e_commerce.exception.PrecioNegativoException;
 
 import jakarta.transaction.Transactional;
 
@@ -36,5 +38,24 @@ public class ProductoService {
                         .toList();
 
     }
+
+    public ProductoResponseDTO createProducto(ProductoRequestDTO productoRequest) {
+    if (productoRequest.getPrecio() < 0) {
+        throw new PrecioNegativoException();
+    }
+
+    Producto producto = new Producto();
+    producto.setNombre(productoRequest.getNombre());
+    producto.setDescription(productoRequest.getDescripcion()); 
+    producto.setPrecio(productoRequest.getPrecio());
+
+    Producto productoGuardado = productoRepository.save(producto);
+
+    return new ProductoResponseDTO(
+            productoGuardado.getId(),
+            productoGuardado.getNombre(),
+            productoGuardado.getDescription()
+    );
+}
 
 }
