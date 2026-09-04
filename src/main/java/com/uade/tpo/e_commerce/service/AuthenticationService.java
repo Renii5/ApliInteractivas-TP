@@ -4,12 +4,16 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.uade.tpo.e_commerce.dto.LoginRequest;
 import com.uade.tpo.e_commerce.dto.RegisterRequest;
+import com.uade.tpo.e_commerce.exception.ContrasenaIncorrectaException;
+import com.uade.tpo.e_commerce.exception.UsuarioAlreadyExistsException;
+import com.uade.tpo.e_commerce.exception.UsuarioNotFoundException;
 import com.uade.tpo.e_commerce.model.Role;
 import com.uade.tpo.e_commerce.model.Usuario;
 import com.uade.tpo.e_commerce.repository.UsuarioRepository;
@@ -64,7 +68,7 @@ public class AuthenticationService {
             // Si el email ya existe, se lanza una excepción. En futuras actualizaciones se debe
             // crear una excepción personalizada (EmailException) y capturarla en un @ControllerAdvice
             // para devolver respuestas HTTP consistentes y mensajes de error profesionales
-            throw new RuntimeException("El email ya existe en la base de datos");
+            throw new UsuarioAlreadyExistsException(request.getEmail());
         }
 
         // ==================== PASO 2: CONSTRUCCIÓN DEL OBJETO USUARIO ====================
@@ -157,6 +161,10 @@ public class AuthenticationService {
      * @throws NoSuchElementException si no se encuentra el usuario después de la autenticación exitosa
      */
     public String authenticate(LoginRequest request) {
+
+        if (usuarioRepository.findByEmail(request.getEmail()).isEmpty()) {
+            throw new UsuarioNotFoundException(request.getEmail());
+        }
         
         // ==================== PASO 1: VALIDACIÓN DE CREDENCIALES ====================
         // Utiliza el AuthenticationManager de Spring Security para validar las credenciales
@@ -180,15 +188,14 @@ public class AuthenticationService {
         // 4. Compara la contraseña enviada (encriptada con el mismo salt) con la almacenada
         // 5. Si coinciden, retorna el token autenticado con los roles del usuario
         // 6. Si no coinciden, lanza BadCredentialsException
-        authenticationManager.authenticate(
+        try {
+            authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        // Email del usuario (actúa como username)
-                        // Ejemplo: ssanchez@gmail.com
-                        request.getEmail(),
-                        // Contraseña en texto plano enviada por el cliente
-                        // Ejemplo: 1234
-                        // El AuthenticationManager la encriptará internamente y la comparará con la BD
-                        request.getPassword()));
+                    request.getEmail(),
+                    request.getPassword()));
+        } catch (BadCredentialsException ex) {
+            throw new ContrasenaIncorrectaException();
+        }
 
         // ==================== PASO 2: OBTENER INFORMACIÓN DEL USUARIO AUTENTICADO ====================
         // Una vez que authenticationManager.authenticate() pasa sin excepciones,
