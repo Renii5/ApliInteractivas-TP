@@ -36,4 +36,12 @@ public class CarritoController {
         return response;
     }
 
+        // delete http://localhost:8080/api/carrito/1 -> elimina el carrito 1
+    @DeleteMapping("/{carritoId}")
+    public ResponseEntity<Void> eliminarCarrito(@PathVariable Long carritoId) {
+        carritoService.eliminarCarrito(carritoId);
+        return ResponseEntity.noContent().build();
+    }
+
+
 }
