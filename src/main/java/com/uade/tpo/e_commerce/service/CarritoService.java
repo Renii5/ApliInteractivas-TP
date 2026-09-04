@@ -2,9 +2,7 @@ package com.uade.tpo.e_commerce.service;
 
 import java.util.List;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.uade.tpo.e_commerce.dto.ProductoResponseDTO;
 import com.uade.tpo.e_commerce.exception.CarritoNotFoundException;
@@ -26,8 +24,8 @@ public class CarritoService {
     private final CarritoRepository carritoRepository;
     private final CarritoProductosRepository carritoProductosRepository;
 
-    CarritoService(CarritoRepository carritoRepository,
-                   CarritoProductosRepository carritoProductosRepository) {
+    public CarritoService(CarritoRepository carritoRepository,
+                          CarritoProductosRepository carritoProductosRepository) {
         this.carritoRepository = carritoRepository;
         this.carritoProductosRepository = carritoProductosRepository;
     }
