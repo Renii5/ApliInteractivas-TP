@@ -4,11 +4,12 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.uade.tpo.e_commerce.model.Producto;
+import com.uade.tpo.e_commerce.dto.ProductoRequestDTO;
 import com.uade.tpo.e_commerce.dto.ProductoResponseDTO;
-import com.uade.tpo.e_commerce.exception.ProductoNotFoundException;
-import com.uade.tpo.e_commerce.repository.ProductoRepository;
 import com.uade.tpo.e_commerce.exception.PrecioNegativoException;
+import com.uade.tpo.e_commerce.exception.ProductoNotFoundException;
+import com.uade.tpo.e_commerce.model.Producto;
+import com.uade.tpo.e_commerce.repository.ProductoRepository;
 
 import jakarta.transaction.Transactional;
 
