@@ -38,6 +38,12 @@ public class ProductoService {
                         .toList();
 
     }
+        public void eliminarProducto(Long id) {
+        if (!productoRepository.existsById(id)) {
+            throw new ProductoNotFoundException("Producto no encontrado con ID: " + id);
+        }
+        productoRepository.deleteById(id);
+    }
 
     public ProductoResponseDTO createProducto(ProductoRequestDTO productoRequest) {
     if (productoRequest.getPrecio() < 0) {
