@@ -1,0 +1,124 @@
+@startuml DiagramaClases_Dominio
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam classBackgroundColor #F0F0F0
+skinparam classBorderColor #333333
+skinparam arrowColor #333333
+
+title Diagrama de Clases - Modelo de Dominio\nPC Hardware Marketplace
+
+package "Modelos de Dominio" {
+
+    class Usuario {
+        -id: Long
+        -email: String
+        -nombre: String
+        -password: String
+        -telefono: String
+        -rol: String
+        --
+        +getId(): Long
+        +getEmail(): String
+        +getNombre(): String
+    }
+
+    class Producto {
+        -id: Long
+        -nombre: String
+        -description: String
+        -precio: double
+        -categoria: Categoria
+        -stock: int
+        --
+        +getId(): Long
+        +getNombre(): String
+        +getPrecio(): double
+        +getDescription(): String
+    }
+
+    class Categoria {
+        -id: Long
+        -nombre: String
+        -descripcion: String
+        --
+        +getId(): Long
+        +getNombre(): String
+    }
+
+    class Carrito {
+        -id: Long
+        -userId: Long
+        -fechaCreacion: LocalDateTime
+        --
+        +getId(): Long
+        +getUserId(): Long
+    }
+
+    class CarritoProductos {
+        -id: Long
+        -carritoId: Long
+        -productoId: Long
+        -cantidad: int
+        -precioUnitario: double
+        --
+        +getId(): Long
+        +getCantidad(): int
+        +getPrecioUnitario(): double
+    }
+
+    class Ventas {
+        -id: Long
+        -productoId: Long
+        -cantidad: int
+        -precioUnitario: double
+        -fecha: LocalDateTime
+        --
+        +getId(): Long
+        +getProductoId(): Long
+        +getCantidad(): int
+        +getPrecioUnitario(): double
+    }
+
+    class Review {
+        -id: Long
+        -productoId: Long
+        -usuarioId: Long
+        -rating: int
+        -comentario: String
+        -fecha: LocalDateTime
+        --
+        +getId(): Long
+        +getRating(): int
+        +getComentario(): String
+    }
+
+    class Orden {
+        -id: Long
+        -usuarioId: Long
+        -fechaOrden: LocalDateTime
+        -total: double
+        -estado: String
+        --
+        +getId(): Long
+        +getUsuarioId(): Long
+        +getTotal(): double
+        +getEstado(): String
+    }
+
+}
+
+' Relaciones
+Usuario "1" -- "*" Carrito : posee
+Usuario "1" -- "*" Review : realiza
+Usuario "1" -- "*" Orden : hace
+
+Carrito "1" -- "*" CarritoProductos : contiene
+CarritoProductos "*" -- "1" Producto : tiene
+
+Producto "1" -- "*" Ventas : se vende en
+Producto "1" -- "*" Review : recibe
+Producto "*" -- "1" Categoria : pertenece a
+
+Orden "1" -- "*" Producto : incluye
+
+@enduml
