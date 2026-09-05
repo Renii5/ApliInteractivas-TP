@@ -1,0 +1,141 @@
+@startuml DiagramaEntidadesDominio
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam classBackgroundColor #F0F0F0
+skinparam classBorderColor #333333
+skinparam arrowColor #333333
+
+title Diagrama de Entidades del Dominio
+subtitle Relaciones y Contextos Boundados
+
+package "Contexto de Usuarios" #E8F4F8 {
+    class Usuario {
+        -id: Long
+        -email: String
+        -nombre: String
+        -password: String
+        -telefono: String
+        -rol: String
+        --
+        +getId(): Long
+        +getEmail(): String
+        +getNombre(): String
+        +validarCredenciales(): boolean
+    }
+}
+
+package "Contexto de Productos" #E8F8E8 {
+    class Producto {
+        -id: Long
+        -nombre: String
+        -description: String
+        -precio: double
+        -categoria: Categoria
+        -stock: int
+        --
+        +getId(): Long
+        +getNombre(): String
+        +getPrecio(): double
+        +validarStock(int): boolean
+        +actualizarStock(int): void
+    }
+
+    class Categoria {
+        -id: Long
+        -nombre: String
+        -descripcion: String
+        --
+        +getId(): Long
+        +getNombre(): String
+    }
+}
+
+package "Contexto de Carritos" #F8F8E8 {
+    class Carrito {
+        -id: Long
+        -userId: Long
+        -fechaCreacion: LocalDateTime
+        --
+        +getId(): Long
+        +getUserId(): Long
+        +calcularTotal(): double
+        +agregarProducto(Producto, int): void
+        +removerProducto(Long): void
+    }
+
+    class CarritoProductos {
+        -id: Long
+        -carritoId: Long
+        -productoId: Long
+        -cantidad: int
+        -precioUnitario: double
+        --
+        +getId(): Long
+        +getCantidad(): int
+        +getPrecioUnitario(): double
+        +calcularSubtotal(): double
+    }
+}
+
+package "Contexto de Ventas" #F8E8F8 {
+    class Orden {
+        -id: Long
+        -usuarioId: Long
+        -fechaOrden: LocalDateTime
+        -total: double
+        -estado: String
+        --
+        +getId(): Long
+        +getUsuarioId(): Long
+        +getTotal(): double
+        +getEstado(): String
+        +procesar(): void
+        +cancelar(): void
+    }
+
+    class Ventas {
+        -id: Long
+        -productoId: Long
+        -cantidad: int
+        -precioUnitario: double
+        -fecha: LocalDateTime
+        --
+        +getId(): Long
+        +getProductoId(): Long
+        +getCantidad(): int
+        +registrar(): void
+    }
+}
+
+package "Contexto de Reviews" #F8E8E8 {
+    class Review {
+        -id: Long
+        -productoId: Long
+        -usuarioId: Long
+        -rating: int
+        -comentario: String
+        -fecha: LocalDateTime
+        --
+        +getId(): Long
+        +getRating(): int
+        +getComentario(): String
+        +validarRating(): boolean
+    }
+}
+
+' Relaciones entre contextos
+Usuario "1" --> "*" Carrito : posee
+Usuario "1" --> "*" Review : realiza
+Usuario "1" --> "*" Orden : hace
+
+Carrito "1" --> "*" CarritoProductos : contiene
+CarritoProductos "*" --> "1" Producto : tiene
+
+Producto "1" --> "*" Ventas : se vende en
+Producto "1" --> "*" Review : recibe
+Producto "*" --> "1" Categoria : pertenece a
+
+Orden "1" --> "*" Producto : incluye
+Orden "1" --> "1" Carrito : se genera desde
+
+@enduml
