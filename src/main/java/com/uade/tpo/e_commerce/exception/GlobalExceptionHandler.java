@@ -10,6 +10,11 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(CategoriaNotFoundException.class)
+    public ResponseEntity<String> manejarCategoriaNoEncontrada(CategoriaNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
     @ExceptionHandler(UsuarioNotFoundException.class)
     public ResponseEntity<String> manejarUsuarioNoEncontrado(UsuarioNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -52,6 +53,13 @@ public class ProductoController {
     public ResponseEntity<ProductoResponseDTO> createProducto(@RequestBody ProductoRequestDTO productoRequest) {
         ProductoResponseDTO productoCreado = productoService.createProducto(productoRequest);
         return new ResponseEntity<>(productoCreado, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ProductoResponseDTO> updateProducto(
+            @PathVariable Long id,
+            @RequestBody ProductoRequestDTO productoRequest) {
+        return ResponseEntity.ok(productoService.updateProducto(id, productoRequest));
     }
 
 }

@@ -112,6 +112,12 @@ public class SecurityConfig {
                         //el endpoint /api/productos con metodo get es público, cualquiera puede ver los productos
                         .requestMatchers(HttpMethod.GET, "/api/productos/**").permitAll()
 
+                        .requestMatchers(HttpMethod.GET, "/api/categorias/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/categorias").permitAll()
+                        //solo los usuarios autenticados pueden actualizar un producto
+                        .requestMatchers(HttpMethod.PUT, "/api/categorias/**").permitAll()
+                        //solo los usuarios autenticados pueden eliminar un producto
+                        .requestMatchers(HttpMethod.DELETE, "/api/categorias/**").permitAll()
                         // Rutas que requieren autenticación para modificar productos
                         //solo los usuarios autenticados pueden crear un producto
                         .requestMatchers(HttpMethod.POST, "/api/productos").authenticated()
