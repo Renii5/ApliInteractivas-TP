@@ -5,8 +5,10 @@ skinparam classBackgroundColor #F0F0F0
 skinparam classBorderColor #333333
 skinparam arrowColor #333333
 
-title Diagrama de Entidades del Dominio
-subtitle Relaciones y Contextos Boundados
+title
+Diagrama de Entidades del Dominio
+Relaciones y Contextos Acotados (Bounded Contexts)
+end title
 
 package "Contexto de Usuarios" #E8F4F8 {
     class Usuario {

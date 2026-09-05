@@ -5,8 +5,10 @@ skinparam classBackgroundColor #F0F0F0
 skinparam classBorderColor #333333
 skinparam arrowColor #333333
 
-title Diagrama de Arquitectura en Capas
-subtitle PC Hardware Marketplace
+title
+Diagrama de Arquitectura en Capas
+PC Hardware Marketplace
+end title
 
 package "Capa de Presentación (API REST)" #CCFFCC {
     component [Controllers]
@@ -32,7 +34,7 @@ package "Capa de Persistencia (Repositories)" #FFCCCC {
 }
 
 package "Capa de Datos" #FFFFCC {
-    database [Base de Datos\nSQL]
+    database "Base de Datos SQL" as BD
 }
 
 ' Relaciones entre capas
@@ -51,11 +53,11 @@ package "Capa de Datos" #FFFFCC {
 [ReviewService] --> [ReviewRepository] : utiliza
 [OrdenService] --> [OrdenRepository] : utiliza
 
-[ProductoRepository] --> [Base de Datos\nSQL] : accede
-[CarritoRepository] --> [Base de Datos\nSQL] : accede
-[VentasRepository] --> [Base de Datos\nSQL] : accede
-[UsuarioRepository] --> [Base de Datos\nSQL] : accede
-[ReviewRepository] --> [Base de Datos\nSQL] : accede
-[OrdenRepository] --> [Base de Datos\nSQL] : accede
+[ProductoRepository] --> BD : accede
+[CarritoRepository] --> BD : accede
+[VentasRepository] --> BD : accede
+[UsuarioRepository] --> BD : accede
+[ReviewRepository] --> BD : accede
+[OrdenRepository] --> BD : accede
 
 @enduml
