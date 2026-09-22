@@ -25,6 +25,7 @@ public class UsuarioService {
                 usuario.getNombre(),
                 usuario.getApellido(),
                 usuario.getEmail(),
+                usuario.getNombreUsuario(),
                 usuario.getRole().name());
     }
 }

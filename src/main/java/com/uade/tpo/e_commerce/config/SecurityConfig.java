@@ -125,8 +125,6 @@ public class SecurityConfig {
                 }))
                 .authorizeHttpRequests(auth -> auth
                         // Rutas públicas que no requieren autenticación
-                        //el controller /api/auth puede ser solicitado por cualquier usuario
-                        .requestMatchers("/api/auth/**").permitAll()
                         // El registro de usuarios es público y no requiere JWT
                         .requestMatchers(HttpMethod.POST, "/api/usuarios/register").permitAll()
                         // El login es público porque genera el JWT
@@ -134,12 +132,6 @@ public class SecurityConfig {
                         //el endpoint /api/productos con metodo get es público, cualquiera puede ver los productos
                         .requestMatchers(HttpMethod.GET, "/api/productos/**").permitAll()
 
-                        .requestMatchers(HttpMethod.GET, "/api/categorias/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/categorias").permitAll()
-                        //solo los usuarios autenticados pueden actualizar un producto
-                        .requestMatchers(HttpMethod.PUT, "/api/categorias/**").permitAll()
-                        //solo los usuarios autenticados pueden eliminar un producto
-                        .requestMatchers(HttpMethod.DELETE, "/api/categorias/**").permitAll()
                         // Rutas que requieren autenticación para modificar productos
                         //solo los usuarios autenticados pueden crear un producto
                         .requestMatchers(HttpMethod.POST, "/api/productos").authenticated()
@@ -147,13 +139,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/productos/**").authenticated()
                         //solo los usuarios autenticados pueden eliminar un producto
                         .requestMatchers(HttpMethod.DELETE, "/api/productos/**").authenticated()
-
-                        // Rutas exclusivas para administradores
-                        //verifica que el usuario esté autenticado y tenga el rol ADMIN
-                        .requestMatchers("/api/admin/**").hasRole(Role.ADMIN.name())
-
-                        // Rutas de pedidos solo para usuarios autenticados
-                        .requestMatchers("/api/pedidos/**").authenticated()
 
                         // Ver categorías es público
                         .requestMatchers(HttpMethod.GET, "/api/categorias/**").permitAll()

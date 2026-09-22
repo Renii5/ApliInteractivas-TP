@@ -1,22 +1,22 @@
 package com.uade.tpo.e_commerce.controller;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.uade.tpo.e_commerce.dto.LoginRequest;
+import com.uade.tpo.e_commerce.dto.LoginResponseDTO;
 import com.uade.tpo.e_commerce.dto.RegisterRequest;
+import com.uade.tpo.e_commerce.dto.UsuarioResponseDTO;
 import com.uade.tpo.e_commerce.service.AuthenticationService;
+import com.uade.tpo.e_commerce.service.UsuarioService;
 
 import lombok.RequiredArgsConstructor;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.http.HttpStatus;
 
 @RestController
 @RequestMapping("/api/usuarios")
@@ -24,32 +24,7 @@ import org.springframework.http.HttpStatus;
 public class UsuarioController {
 
     private final AuthenticationService authenticationService;
-
-    @PostMapping("/register")
-    public String register(@RequestBody RegisterRequest request) {
-        return authenticationService.register(request);
-    }
-
-    @PostMapping("/login")
-    public String login(@RequestBody LoginRequest request) {
-        return authenticationService.authenticate(request);
-    }
-    
-    @GetMapping
-    public String getAllUsuarios(@RequestParam String param) {
-        return new String();
-    }
-
-    @GetMapping("/{id}")
-    public String getUsuarioById(@PathVariable Long id) {
-        return new String();
-    }
-    
-    @GetMapping("/me")
-    public ResponseEntity<UsuarioResponseDTO> getUsuarioActual(Authentication authentication) {
-        // getName() devuelve el subject del token, que es el email
-        return ResponseEntity.ok(usuarioService.getUsuarioPorEmail(authentication.getName()));
-    }
+    private final UsuarioService usuarioService;
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
@@ -60,5 +35,11 @@ public class UsuarioController {
     public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequest request) {
         return ResponseEntity.ok(authenticationService.authenticate(request));
     }
-    
+
+    @GetMapping("/me")
+    public ResponseEntity<UsuarioResponseDTO> getUsuarioActual(Authentication authentication) {
+        // getName() devuelve el subject del token, que es el email
+        return ResponseEntity.ok(usuarioService.getUsuarioPorEmail(authentication.getName()));
+    }
+
 }

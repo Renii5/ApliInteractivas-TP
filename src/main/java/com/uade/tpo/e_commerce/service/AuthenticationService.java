@@ -10,8 +10,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.uade.tpo.e_commerce.dto.LoginRequest;
+import com.uade.tpo.e_commerce.dto.LoginResponseDTO;
 import com.uade.tpo.e_commerce.dto.RegisterRequest;
 import com.uade.tpo.e_commerce.exception.ContrasenaIncorrectaException;
+import com.uade.tpo.e_commerce.exception.NombreUsuarioEnUsoException;
 import com.uade.tpo.e_commerce.exception.UsuarioAlreadyExistsException;
 import com.uade.tpo.e_commerce.exception.UsuarioNotFoundException;
 import com.uade.tpo.e_commerce.model.Role;
@@ -165,7 +167,7 @@ public class AuthenticationService {
      * @throws BadCredentialsException si la contraseña proporcionada es incorrecta
      * @throws NoSuchElementException si no se encuentra el usuario después de la autenticación exitosa
      */
-    public String authenticate(LoginRequest request) {
+    public LoginResponseDTO authenticate(LoginRequest request) {
 
         if (usuarioRepository.findByEmail(request.getEmail()).isEmpty()) {
             throw new UsuarioNotFoundException(request.getEmail());
