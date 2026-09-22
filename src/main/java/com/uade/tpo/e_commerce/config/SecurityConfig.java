@@ -129,6 +129,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/usuarios/register").permitAll()
                         // El login es público porque genera el JWT
                         .requestMatchers(HttpMethod.POST, "/api/usuarios/login").permitAll()
+                        // "Mis productos" necesita saber quién es el usuario: requiere token.
+                        // Tiene que ir antes del GET público, porque gana la primera regla que coincide
+                        .requestMatchers(HttpMethod.GET, "/api/productos/mios").authenticated()
                         //el endpoint /api/productos con metodo get es público, cualquiera puede ver los productos
                         .requestMatchers(HttpMethod.GET, "/api/productos/**").permitAll()
 

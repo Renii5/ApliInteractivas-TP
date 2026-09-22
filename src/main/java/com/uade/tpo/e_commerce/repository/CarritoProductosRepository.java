@@ -17,4 +17,7 @@ public interface CarritoProductosRepository extends JpaRepository<CarritoProduct
     // @EntityGraph trae el Producto en la misma consulta y evita el problema N+1.
     @EntityGraph(attributePaths = "producto")
     List<CarritoProductos> findByCarritoId(Long carritoId);
+
+    // true si el producto está en algún carrito (se usa antes de borrar el producto)
+    boolean existsByProductoId(Long productoId);
 }

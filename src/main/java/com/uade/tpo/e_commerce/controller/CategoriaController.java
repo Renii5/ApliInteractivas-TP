@@ -13,7 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.uade.tpo.e_commerce.model.Categoria;
+import com.uade.tpo.e_commerce.dto.CategoriaRequestDTO;
+import com.uade.tpo.e_commerce.dto.CategoriaResponseDTO;
 import com.uade.tpo.e_commerce.service.CategoriaService;
 
 @RestController
@@ -27,25 +28,25 @@ public class CategoriaController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Categoria>> listarCategorias() {
+    public ResponseEntity<List<CategoriaResponseDTO>> listarCategorias() {
         return ResponseEntity.ok(categoriaService.listarCategorias());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Categoria> buscarCategoria(@PathVariable Long id) {
+    public ResponseEntity<CategoriaResponseDTO> buscarCategoria(@PathVariable Long id) {
         return ResponseEntity.ok(categoriaService.buscarCategoria(id));
     }
 
     @PostMapping
-    public ResponseEntity<Categoria> agregarCategoria(@RequestBody Categoria categoria) {
+    public ResponseEntity<CategoriaResponseDTO> agregarCategoria(@RequestBody CategoriaRequestDTO categoria) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(categoriaService.agregarCategoria(categoria));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Categoria> actualizarCategoria(
+    public ResponseEntity<CategoriaResponseDTO> actualizarCategoria(
             @PathVariable Long id,
-            @RequestBody Categoria categoria) {
+            @RequestBody CategoriaRequestDTO categoria) {
         return ResponseEntity.ok(categoriaService.actualizarCategoria(id, categoria));
     }
 

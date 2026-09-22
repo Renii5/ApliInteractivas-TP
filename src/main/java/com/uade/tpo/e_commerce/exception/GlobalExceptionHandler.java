@@ -91,4 +91,19 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> manejarBodyInvalido(HttpMessageNotReadableException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El cuerpo de la request falta o tiene un formato inválido");
     }
+
+    @ExceptionHandler(ProductoNoPropioException.class)
+    public ResponseEntity<String> manejarProductoNoPropio(ProductoNoPropioException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(CategoriaConProductosException.class)
+    public ResponseEntity<String> manejarCategoriaConProductos(CategoriaConProductosException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(ProductoEnUsoException.class)
+    public ResponseEntity<String> manejarProductoEnUso(ProductoEnUsoException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    }
 }

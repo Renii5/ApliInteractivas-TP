@@ -32,8 +32,16 @@ public class Producto {
     @Column
     private double precio;
 
+    @Column(nullable = false)
+    private Integer stock;
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "categoria_id", nullable = false)
     private Categoria categoria;
 
+    // Usuario que publicó el producto. Se asigna desde el token, nunca desde el body.
+    // Es nullable para no romper los productos que ya existían antes de agregar la columna
+    @ManyToOne
+    @JoinColumn(name = "vendedor_id")
+    private Usuario vendedor;
 }
