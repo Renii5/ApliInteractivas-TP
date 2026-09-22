@@ -8,7 +8,6 @@ import com.uade.tpo.e_commerce.dto.ProductoRequestDTO;
 import com.uade.tpo.e_commerce.dto.ProductoResponseDTO;
 import com.uade.tpo.e_commerce.exception.CategoriaNotFoundException;
 import com.uade.tpo.e_commerce.exception.PrecioNegativoException;
-import com.uade.tpo.e_commerce.exception.ProductoEnUsoException;
 import com.uade.tpo.e_commerce.exception.ProductoNoPropioException;
 import com.uade.tpo.e_commerce.exception.ProductoNotFoundException;
 import com.uade.tpo.e_commerce.exception.StockInvalidoException;
@@ -118,10 +117,9 @@ public class ProductoService {
         Producto producto = obtenerProducto(id);
         validarDueno(producto, email);
 
-        // Si está en algún carrito, borrarlo violaría la FK de carrito_productos: se responde 409
-        if (carritoProductosRepository.existsByProductoId(id)) {
-            throw new ProductoEnUsoException(id);
-        }
+        // Primero se saca de los carritos que lo tengan: si no, borrarlo violaría
+        // la FK de carrito_productos. Todo corre en la misma transacción (@Transactional)
+        carritoProductosRepository.deleteByProductoId(id);
         productoRepository.delete(producto);
     }
 

@@ -101,9 +101,4 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> manejarCategoriaConProductos(CategoriaConProductosException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
-
-    @ExceptionHandler(ProductoEnUsoException.class)
-    public ResponseEntity<String> manejarProductoEnUso(ProductoEnUsoException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
-    }
 }

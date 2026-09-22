@@ -18,6 +18,6 @@ public interface CarritoProductosRepository extends JpaRepository<CarritoProduct
     @EntityGraph(attributePaths = "producto")
     List<CarritoProductos> findByCarritoId(Long carritoId);
 
-    // true si el producto está en algún carrito (se usa antes de borrar el producto)
-    boolean existsByProductoId(Long productoId);
+    // Saca el producto de todos los carritos (se usa antes de borrar el producto)
+    void deleteByProductoId(Long productoId);
 }
