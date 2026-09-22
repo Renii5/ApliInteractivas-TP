@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 
 //TODO: ssanchez - es buena práctica crear excepciones personalizadas para cada error específico, y manejarlas en un controlador de excepciones global con @ControllerAdvice, para centralizar el manejo de errores y evitar repetir código en cada controlador. Por ejemplo, se podría crear una excepción ProductoNotFoundException para manejar el caso cuando no se encuentra un producto, y otra excepción PrecioNegativoException para manejar el caso cuando se intenta guardar un producto con precio negativo. Luego, en el controlador de excepciones global, se podrían manejar estas excepciones y devolver una respuesta adecuada al cliente, como un código de estado HTTP 404 (Not Found) para ProductoNotFoundException, o un código de estado HTTP 400 (Bad Request) para PrecioNegativoException.
 // Anotación que indica que esta clase manejará excepciones de forma global para todos los controladores.
@@ -84,5 +85,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<String> manejarAccesoDenegado(AccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body("No tiene permisos para realizar esta acción");
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<String> manejarBodyInvalido(HttpMessageNotReadableException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El cuerpo de la request falta o tiene un formato inválido");
     }
 }
