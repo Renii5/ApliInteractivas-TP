@@ -14,6 +14,9 @@ import com.uade.tpo.e_commerce.service.AuthenticationService;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+
 @RestController
 @RequestMapping("/api/usuarios")
 @RequiredArgsConstructor
@@ -41,5 +44,10 @@ public class UsuarioController {
         return new String();
     }
     
+    @GetMapping("/me")
+    public ResponseEntity<UsuarioResponseDTO> getUsuarioActual(Authentication authentication) {
+        // getName() devuelve el subject del token, que es el email
+        return ResponseEntity.ok(usuarioService.getUsuarioPorEmail(authentication.getName()));
+    }
     
 }
