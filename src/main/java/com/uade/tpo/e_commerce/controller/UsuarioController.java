@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.http.HttpStatus;
 
 @RestController
 @RequestMapping("/api/usuarios")
@@ -48,6 +49,16 @@ public class UsuarioController {
     public ResponseEntity<UsuarioResponseDTO> getUsuarioActual(Authentication authentication) {
         // getName() devuelve el subject del token, que es el email
         return ResponseEntity.ok(usuarioService.getUsuarioPorEmail(authentication.getName()));
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(authenticationService.register(request));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequest request) {
+        return ResponseEntity.ok(authenticationService.authenticate(request));
     }
     
 }

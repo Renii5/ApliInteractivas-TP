@@ -40,6 +40,9 @@ public class Usuario implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Column(unique = true)
+    private String nombreUsuario;
+
     // @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL)
     // private List<Pedido> pedidos;
 

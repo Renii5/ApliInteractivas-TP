@@ -89,6 +89,10 @@ public class AuthenticationService {
         // usuario.setPassword(passwordEncoder.encode(request.getPassword()));
         // usuario.setRole(Role.USER);
 
+        if (usuarioRepository.existsByNombreUsuario(request.getNombreUsuario())) {
+            throw new NombreUsuarioEnUsoException(request.getNombreUsuario());
+        }
+
         //con el builder, se construye el usuario de forma fluida y clara, asignando cada campo de manera explícita
         Usuario usuario = Usuario.builder()
                 // 2.1) Asigna el nombre completo del usuario desde el request
@@ -111,6 +115,7 @@ public class AuthenticationService {
                 //      Solo administradores pueden asignar roles especiales (ADMIN, MODERATOR, etc.)
                 //      Esto sigue el principio de "least privilege" (menor nivel de privilegios)
                 .role(Role.USER)
+                .nombreUsuario(request.getNombreUsuario())
                 // 2.6) Finaliza la construcción y retorna la instancia Usuario 
                 //      con todos los campos configurados y listos para usar
                 .build();
@@ -243,6 +248,8 @@ public class AuthenticationService {
         // - Firma el token con una clave secreta definida en la aplicación
         // - El servidor podrá verificar este token en futuras solicitudes sin consultar BD
         // - Solo tokens con firma válida serán aceptados (previene manipulación)
-        return jwtUtil.generateToken(user.getEmail(), roles);
+        
+        String token = jwtUtil.generateToken(user.getEmail(), roles);
+        return new LoginResponseDTO(token, user.getEmail(), user.getRole().name());
     }
 }
