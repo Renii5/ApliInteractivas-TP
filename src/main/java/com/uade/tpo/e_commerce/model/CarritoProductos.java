@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,6 +18,8 @@ import lombok.Setter;
 /**
  * Tabla intermedia entre carrito y productos: cada fila es un producto
  * dentro de un carrito, con la cantidad pedida.
+ * La restricción única (carrito, producto) evita que el mismo producto
+ * aparezca dos veces: si se vuelve a agregar, se suma la cantidad.
  * CarritoProductos
  */
 @Getter
@@ -24,7 +27,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "carrito_productos")
+@Table(name = "carrito_productos",
+       uniqueConstraints = @UniqueConstraint(columnNames = {"carrito_id", "producto_id"}))
 public class CarritoProductos {
 
     @Id
@@ -41,4 +45,10 @@ public class CarritoProductos {
 
     @Column(nullable = false)
     private Integer cantidad;
+
+    public CarritoProductos(Carrito carrito, Producto producto, Integer cantidad) {
+        this.carrito = carrito;
+        this.producto = producto;
+        this.cantidad = cantidad;
+    }
 }

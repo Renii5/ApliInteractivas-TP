@@ -19,11 +19,4 @@ public class ProductoResponseDTO {
     private String categoriaNombre;
     // Nombre de usuario de quien publicó el producto
     private String vendedor;
-
-    // Constructor reducido que usa CarritoService
-    public ProductoResponseDTO(Long id, String nombre, String descripcion) {
-        this.id = id;
-        this.nombre = nombre;
-        this.descripcion = descripcion;
-    }
 }

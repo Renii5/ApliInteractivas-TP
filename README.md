@@ -72,14 +72,18 @@ Las versiones renderizadas en SVG están en [`docs/imgDiagrams/`](docs/imgDiagra
 | `Usuario` | `usuarios` | id, nombre, apellido, email (único), password (BCrypt), role | Implementa `UserDetails` de Spring Security |
 | `Categoria` | `categorias` | id, nombre | — |
 | `Producto` | `productos` | id, nombre, description, precio | `@ManyToOne` → `Categoria` |
-| `Carrito` | `carrito` | id, userId | — |
-| `CarritoProductos` | `carrito_productos` | id, cantidad | `@ManyToOne` → `Carrito`, `@ManyToOne` → `Producto` |
-| `Ventas` | `ventas` | id, productoId, cantidad, precioUnitario, fecha | — |
+| `Carrito` | `carrito` | id | `@OneToOne` → `Usuario` (un carrito por usuario) |
+| `CarritoProductos` | `carrito_productos` | id, cantidad | `@ManyToOne` → `Carrito`, `@ManyToOne` → `Producto`; único (carrito, producto) |
+| `Orden` | `ordenes` | id, fecha, total | `@ManyToOne` → `Usuario` (comprador), `@OneToMany` → `OrdenItem` (cascade) |
+| `OrdenItem` | `orden_items` | id, cantidad, precioUnitario | `@ManyToOne` → `Orden`, `@ManyToOne` → `Producto` |
 
 La relación N:M entre `Carrito` y `Producto` se modela de forma explícita mediante la entidad
 intermedia `CarritoProductos`, que además guarda la cantidad de cada ítem. La consulta
 `findByCarritoId` usa `@EntityGraph` para traer el producto en la misma query y evitar el
 problema N+1.
+
+`OrdenItem` guarda el precio del producto al momento de la compra, así un cambio de precio
+posterior no altera las órdenes ya generadas.
 
 ---
 
@@ -133,17 +137,45 @@ Body de alta/modificación:
 
 ### Carrito — `/api/carrito`
 
+Todos los endpoints operan sobre el carrito del usuario autenticado (no reciben id de carrito).
+El carrito se crea automáticamente la primera vez que se usa.
+
 | Método | Endpoint | Descripción | Acceso | Respuesta |
 | :--- | :--- | :--- | :--- | :--- |
-| `GET` | `/api/carrito/{carritoId}` | Lista los productos contenidos en el carrito. | Autenticado | `200` / `404` si el carrito no existe |
-| `DELETE` | `/api/carrito/{carritoId}` | Elimina el carrito. | Autenticado | `204` / `404` |
+| `GET` | `/api/carrito` | Carrito con ítems, subtotales y total. | Autenticado | `200` |
+| `POST` | `/api/carrito/items` | Agrega un producto (si ya estaba, suma la cantidad). | Autenticado | `200` / `400` / `404` / `409` sin stock |
+| `PUT` | `/api/carrito/items/{productoId}` | Cambia la cantidad de un ítem. | Autenticado | `200` / `400` / `404` / `409` sin stock |
+| `DELETE` | `/api/carrito/items/{productoId}` | Saca un producto del carrito. | Autenticado | `200` / `404` |
+| `DELETE` | `/api/carrito` | Vacía el carrito. | Autenticado | `204` |
+| `POST` | `/api/carrito/checkout` | Compra el carrito: valida y descuenta stock, genera la orden y vacía el carrito. | Autenticado | `201` / `400` carrito vacío / `409` sin stock |
 
-> Un carrito existente pero vacío devuelve `200` con lista vacía; un carrito inexistente devuelve `404`.
+Bodies:
+
+```json
+{ "productoId": 1, "cantidad": 2 }
+```
+
+```json
+{ "cantidad": 3 }
+```
+
+El checkout es un método `@Transactional`: si falla cualquier paso (por ejemplo, un producto
+sin stock) se hace rollback y no queda stock descontado ni una orden a medio crear.
+
+### Órdenes (mis compras) — `/api/ordenes`
+
+| Método | Endpoint | Descripción | Acceso | Respuesta |
+| :--- | :--- | :--- | :--- | :--- |
+| `GET` | `/api/ordenes` | Compras del usuario autenticado, de la más reciente a la más vieja. | Autenticado | `200` |
+| `GET` | `/api/ordenes/{id}` | Detalle de una compra propia. | Autenticado | `200` / `404` si no existe o es de otro usuario |
 
 ### Ventas — `/api/ventas`
 
 | Método | Endpoint | Descripción | Acceso | Respuesta |
 | :--- | :--- | :--- | :--- | :--- |
+| `GET` | `/api/ventas` | Histórico de todas las órdenes, con comprador, ítems y total. | `ADMIN` | `200` / `403` |
+
+--- | :--- | :--- | :--- | :--- |
 | `GET` | `/api/ventas` | Lista el histórico de ventas registradas. | Autenticado | `200` |
 
 ---
@@ -180,10 +212,10 @@ El enum `Role` define `USER`, `ADMIN` y `VENDEDOR`. Las autoridades se exponen a
 
 | Excepción | HTTP |
 | :--- | :--- |
-| `ProductoNotFoundException`, `CategoriaNotFoundException`, `CarritoNotFoundException`, `UsuarioNotFoundException` | `404 Not Found` |
+| `ProductoNotFoundException`, `CategoriaNotFoundException`, `CarritoNotFoundException`, `UsuarioNotFoundException`, `ProductoNoEnCarritoException`, `OrdenNotFoundException` | `404 Not Found` |
 | `ContrasenaIncorrectaException` | `401 Unauthorized` |
-| `UsuarioAlreadyExistsException` | `409 Conflict` |
-| `PrecioNegativoException`, `IllegalArgumentException` | `400 Bad Request` |
+| `UsuarioAlreadyExistsException`, `StockInsuficienteException`, `ProductoConVentasException` | `409 Conflict` |
+| `PrecioNegativoException`, `CantidadInvalidaException`, `CarritoVacioException`, `IllegalArgumentException` | `400 Bad Request` |
 | `Exception` (fallback) | `500 Internal Server Error` |
 
 ---
@@ -216,7 +248,7 @@ La API queda disponible en `http://localhost:8080`.
 
 En [`data-testing/sql/`](data-testing/sql/) hay scripts de poblado. Deben correrse en este orden,
 porque hay dependencias por clave foránea: `usuarios-insert.sql`, `productos-insert.sql`,
-`carrito-insert.sql` y `ventas-insert.sql`. Cada archivo documenta en su encabezado el comando
+`carrito-insert.sql` y `ordenes-insert.sql`. Cada archivo documenta en su encabezado el comando
 `docker exec` con el que se ejecuta contra el contenedor `mysql-open`.
 
 ---
@@ -240,9 +272,6 @@ Parámetros relevantes de `src/main/resources/application.properties`:
 
 Alcance que forma parte del enunciado del TPO y todavía no está implementado:
 
-- Control de **stock** en `Producto` y validación al agregar al carrito.
-- Endpoints de **alta y baja de ítems** del carrito (`POST` / `DELETE` de un ítem puntual).
-- **Checkout** del carrito: cálculo del total, descuento de stock y generación de la venta.
 - Carga de **imágenes** en la publicación de un producto.
 - Listado de productos **ordenado alfabéticamente** y búsqueda por término.
 

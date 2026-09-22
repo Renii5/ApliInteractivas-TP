@@ -8,6 +8,7 @@ import com.uade.tpo.e_commerce.dto.ProductoRequestDTO;
 import com.uade.tpo.e_commerce.dto.ProductoResponseDTO;
 import com.uade.tpo.e_commerce.exception.CategoriaNotFoundException;
 import com.uade.tpo.e_commerce.exception.PrecioNegativoException;
+import com.uade.tpo.e_commerce.exception.ProductoConVentasException;
 import com.uade.tpo.e_commerce.exception.ProductoNoPropioException;
 import com.uade.tpo.e_commerce.exception.ProductoNotFoundException;
 import com.uade.tpo.e_commerce.exception.StockInvalidoException;
@@ -18,6 +19,7 @@ import com.uade.tpo.e_commerce.model.Role;
 import com.uade.tpo.e_commerce.model.Usuario;
 import com.uade.tpo.e_commerce.repository.CarritoProductosRepository;
 import com.uade.tpo.e_commerce.repository.CategoriaRepository;
+import com.uade.tpo.e_commerce.repository.OrdenItemRepository;
 import com.uade.tpo.e_commerce.repository.ProductoRepository;
 import com.uade.tpo.e_commerce.repository.UsuarioRepository;
 
@@ -35,15 +37,18 @@ public class ProductoService {
     private final CategoriaRepository categoriaRepository;
     private final UsuarioRepository usuarioRepository;
     private final CarritoProductosRepository carritoProductosRepository;
+    private final OrdenItemRepository ordenItemRepository;
 
     public ProductoService(ProductoRepository productoRepository,
                            CategoriaRepository categoriaRepository,
                            UsuarioRepository usuarioRepository,
-                           CarritoProductosRepository carritoProductosRepository) {
+                           CarritoProductosRepository carritoProductosRepository,
+                           OrdenItemRepository ordenItemRepository) {
         this.productoRepository = productoRepository;
         this.categoriaRepository = categoriaRepository;
         this.usuarioRepository = usuarioRepository;
         this.carritoProductosRepository = carritoProductosRepository;
+        this.ordenItemRepository = ordenItemRepository;
     }
 
     // Listado ordenado alfabéticamente, con filtro opcional por categoría o por nombre
@@ -116,6 +121,11 @@ public class ProductoService {
     public void eliminarProducto(Long id, String email) {
         Producto producto = obtenerProducto(id);
         validarDueno(producto, email);
+
+        // Si ya se vendió, borrarlo rompería el histórico de órdenes (FK de orden_items)
+        if (ordenItemRepository.existsByProductoId(id)) {
+            throw new ProductoConVentasException();
+        }
 
         // Primero se saca de los carritos que lo tengan: si no, borrarlo violaría
         // la FK de carrito_productos. Todo corre en la misma transacción (@Transactional)

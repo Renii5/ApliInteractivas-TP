@@ -101,4 +101,24 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> manejarCategoriaConProductos(CategoriaConProductosException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
+
+    @ExceptionHandler(StockInsuficienteException.class)
+    public ResponseEntity<String> manejarStockInsuficiente(StockInsuficienteException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(ProductoNoEnCarritoException.class)
+    public ResponseEntity<String> manejarProductoNoEnCarrito(ProductoNoEnCarritoException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(OrdenNotFoundException.class)
+    public ResponseEntity<String> manejarOrdenNoEncontrada(OrdenNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(ProductoConVentasException.class)
+    public ResponseEntity<String> manejarProductoConVentas(ProductoConVentasException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    }
 }
