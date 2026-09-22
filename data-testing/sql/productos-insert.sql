@@ -1,28 +1,30 @@
 -- ============================================================
--- Poblado inicial de la tabla productos (ecommerce_db3)
+-- 3) Productos (ecommerce_db3)
+-- Requiere haber corrido antes usuarios-insert.sql y categorias-insert.sql
 -- Uso:  docker exec -i mysql-open mysql -uroot ecommerce_db3 < data-testing/sql/productos-insert.sql
+-- ============================================================
+--
+-- Vendedores: Juan (id 3) y Lucia (id 4).
+-- El producto 9 tiene stock 0 a propósito, para probar "disponible": false
+-- y el error al agregarlo al carrito.
 -- ============================================================
 
 SET NAMES utf8mb4;
 
--- Limpia la tabla y reinicia el contador de ids, para que el
--- script se pueda correr las veces que haga falta sin duplicar.
+DELETE FROM orden_items;
+DELETE FROM carrito_productos;
 DELETE FROM productos;
-ALTER TABLE productos AUTO_INCREMENT = 1;
 
-INSERT INTO productos (nombre, description, precio) VALUES
-    ('Teclado mecánico RGB',        'Switches rojos, 87 teclas, retroiluminado',      45000.50),
-    ('Mouse inalámbrico',           '6 botones programables, 16000 DPI',              22000.00),
-    ('Monitor 27 pulgadas',         'QHD 2560x1440, 165Hz, panel IPS',               380000.00),
-    ('Auriculares Bluetooth',       'Cancelación activa de ruido, 30h de batería',     89990.00),
-    ('Webcam Full HD',              '1080p 60fps con micrófono estéreo',               54500.00),
-    ('Disco SSD NVMe 1TB',          'Lectura 7000 MB/s, formato M.2 2280',            125000.00),
-    ('Memoria RAM 16GB DDR4',       '3200 MHz CL16, disipador de aluminio',            78000.00),
-    ('Placa de video RTX 4060',     '8GB GDDR6, ray tracing y DLSS 3',                890000.00),
-    ('Notebook 15.6 pulgadas',      'Core i5, 16GB RAM, SSD 512GB',                  1250000.00),
-    ('Silla gamer ergonómica',      'Soporte lumbar, apoyabrazos 4D, reclinable',     320000.00),
-    ('Hub USB-C 7 en 1',            'HDMI 4K, 2x USB 3.0, SD, microSD, PD 100W',       35900.00),
-    ('Micrófono condensador USB',   'Patrón cardioide, brazo articulado incluido',     96000.00),
-    ('Parlante Bluetooth portátil', 'Resistente al agua IPX7, 20h de autonomía',       67500.00),
-    ('Cable HDMI 2.1 de 2m',        'Soporta 4K 120Hz y 8K 60Hz',                      12500.00),
-    ('Base para notebook',          'Aluminio, altura regulable, hasta 17 pulgadas',   28000.00);
+INSERT INTO productos (id, nombre, description, precio, stock, categoria_id, vendedor_id) VALUES
+    ( 1, 'RTX 4070',              'GPU 12GB GDDR6X, DLSS 3',           850000,  5, 1, 3),
+    ( 2, 'Mouse inalambrico',     '6 botones, 16000 DPI',               22000, 10, 5, 3),
+    ( 3, 'Teclado mecanico',      'Switches rojos, 87 teclas, RGB',     45000,  3, 5, 3),
+    ( 4, 'Ryzen 7 7800X3D',       '8 nucleos, 16 hilos, AM5',          520000,  4, 2, 3),
+    ( 5, 'Monitor 27 pulgadas',   'QHD 2560x1440, 165Hz, IPS',         380000,  2, 6, 3),
+    ( 6, 'RX 7800 XT',            'GPU 16GB GDDR6',                    700000,  6, 1, 4),
+    ( 7, 'Memoria RAM 32GB DDR5', '2x16GB, 6000 MHz CL30',             150000,  8, 3, 4),
+    ( 8, 'SSD NVMe 1TB',          'Lectura 7000 MB/s, M.2 2280',       125000, 12, 4, 4),
+    ( 9, 'Intel Core i5 14600K',  '14 nucleos, LGA1700',               390000,  0, 2, 4),
+    (10, 'Auriculares gamer',     'Sonido 7.1, microfono desmontable',  60000,  7, 5, 4);
+
+ALTER TABLE productos AUTO_INCREMENT = 11;
