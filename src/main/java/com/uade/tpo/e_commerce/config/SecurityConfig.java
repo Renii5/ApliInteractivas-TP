@@ -174,16 +174,26 @@ public class SecurityConfig {
     }
 
     // CORS: el navegador bloquea requests desde otro origen (el front en otro puerto).
-// Acá se indica qué orígenes, métodos y headers se permiten.
+    // Acá se indica qué orígenes, métodos y headers se permiten.
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-
+        // Crea la configuración CORS que se aplicará a las solicitudes.
+        CorsConfiguration configuration = new CorsConfiguration();
+        // Autoriza solicitudes provenientes del frontend (Vite en localhost:5173).
+        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000"));
+        // Permite que el frontend use estos métodos HTTP.
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        // Acepta cualquier encabezado enviado en las solicitudes.
+        configuration.setAllowedHeaders(List.of("*"));
+        // Permite enviar cookies y credenciales entre distintos orígenes.
+        // Necesario porque el front hace fetch con credentials: 'include'
+        configuration.setAllowCredentials(true);
+        // Crea el proveedor que asocia configuraciones CORS con rutas.
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
+        // Aplica esta configuración a todas las rutas de la aplicación.
+        source.registerCorsConfiguration("/**", configuration);
+
+        // Devuelve la configuración CORS para que Spring Security la utilice.
         return source;
     }
 }
