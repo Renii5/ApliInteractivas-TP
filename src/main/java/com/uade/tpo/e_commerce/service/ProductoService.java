@@ -19,6 +19,7 @@ import com.uade.tpo.e_commerce.model.Role;
 import com.uade.tpo.e_commerce.model.Usuario;
 import com.uade.tpo.e_commerce.repository.CarritoProductosRepository;
 import com.uade.tpo.e_commerce.repository.CategoriaRepository;
+import com.uade.tpo.e_commerce.repository.FavoritoRepository;
 import com.uade.tpo.e_commerce.repository.OrdenItemRepository;
 import com.uade.tpo.e_commerce.repository.ProductoRepository;
 import com.uade.tpo.e_commerce.repository.UsuarioRepository;
@@ -37,17 +38,20 @@ public class ProductoService {
     private final CategoriaRepository categoriaRepository;
     private final UsuarioRepository usuarioRepository;
     private final CarritoProductosRepository carritoProductosRepository;
+    private final FavoritoRepository favoritoRepository;
     private final OrdenItemRepository ordenItemRepository;
 
     public ProductoService(ProductoRepository productoRepository,
                            CategoriaRepository categoriaRepository,
                            UsuarioRepository usuarioRepository,
                            CarritoProductosRepository carritoProductosRepository,
+                           FavoritoRepository favoritoRepository,
                            OrdenItemRepository ordenItemRepository) {
         this.productoRepository = productoRepository;
         this.categoriaRepository = categoriaRepository;
         this.usuarioRepository = usuarioRepository;
         this.carritoProductosRepository = carritoProductosRepository;
+        this.favoritoRepository = favoritoRepository;
         this.ordenItemRepository = ordenItemRepository;
     }
 
@@ -130,6 +134,7 @@ public class ProductoService {
         // Primero se saca de los carritos que lo tengan: si no, borrarlo violaría
         // la FK de carrito_productos. Todo corre en la misma transacción (@Transactional)
         carritoProductosRepository.deleteByProductoId(id);
+        favoritoRepository.deleteByProductoId(id);
         productoRepository.delete(producto);
     }
 
