@@ -4,6 +4,7 @@ package com.uade.tpo.e_commerce.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -22,6 +23,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import jakarta.servlet.http.HttpServletResponse;
 
+import com.uade.tpo.e_commerce.dto.ErrorResponse;
 import com.uade.tpo.e_commerce.model.Role;
 import com.uade.tpo.e_commerce.repository.UsuarioRepository;
 import com.uade.tpo.e_commerce.security.JwtFilter;
@@ -115,13 +117,18 @@ public class SecurityConfig {
                 .authenticationEntryPoint((request, response, authException) -> {
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     response.setContentType("application/json");
-                    response.getWriter().write("{\"error\": \"Debe autenticarse para acceder a este recurso\"}");
+                    response.setCharacterEncoding("UTF-8");
+                    // Mismo formato JSON que los errores del GlobalExceptionHandler
+                    response.getWriter().write(new ErrorResponse(HttpStatus.UNAUTHORIZED,
+                            "Debe autenticarse para acceder a este recurso").toJson());
                 })
                 // Token válido pero sin el rol necesario -> 403 Forbidden
                 .accessDeniedHandler((request, response, accessDeniedException) -> {
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                     response.setContentType("application/json");
-                    response.getWriter().write("{\"error\": \"No tiene permisos para acceder a este recurso\"}");
+                    response.setCharacterEncoding("UTF-8");
+                    response.getWriter().write(new ErrorResponse(HttpStatus.FORBIDDEN,
+                            "No tiene permisos para acceder a este recurso").toJson());
                 }))
                 .authorizeHttpRequests(auth -> auth
                         // Rutas públicas que no requieren autenticación

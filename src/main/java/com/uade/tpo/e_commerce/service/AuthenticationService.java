@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import com.uade.tpo.e_commerce.dto.LoginRequest;
 import com.uade.tpo.e_commerce.dto.LoginResponseDTO;
 import com.uade.tpo.e_commerce.dto.RegisterRequest;
+import com.uade.tpo.e_commerce.dto.UsuarioResponseDTO;
 import com.uade.tpo.e_commerce.exception.ContrasenaIncorrectaException;
 import com.uade.tpo.e_commerce.exception.NombreUsuarioEnUsoException;
 import com.uade.tpo.e_commerce.exception.UsuarioAlreadyExistsException;
@@ -48,18 +49,18 @@ public class AuthenticationService {
      * 3. Encripta la contraseña usando BCrypt (algoritmo seguro resistente a ataques de fuerza bruta)
      * 4. Asigna automáticamente el rol de usuario básico (USER)
      * 5. Persiste el usuario en la base de datos dentro de una transacción
-     * 6. Retorna un mensaje de confirmación
+     * 6. Retorna los datos del usuario creado (UsuarioResponseDTO)
      * 
      * @param request objeto RegisterRequest que contiene:
      *                - nombre: nombre del usuario a registrar
      *                - apellido: apellido del usuario a registrar
      *                - email: email único del usuario (validado en PASO 1)
      *                - password: contraseña en texto plano que será encriptada
-     * @return "User registered successfully" - mensaje de confirmación del registro exitoso
+     * @return UsuarioResponseDTO con id, nombre, apellido, email, nombre de usuario y rol del usuario creado
      * @throws RuntimeException si el email ya existe en el sistema 
      *         (TODO: implementar excepción personalizada EmailException y manejar con @ControllerAdvice)
      */
-    public String register(RegisterRequest request) {
+    public UsuarioResponseDTO register(RegisterRequest request) {
 
         // ==================== PASO 1: VALIDACIÓN DE EMAIL ÚNICO ====================
         // Verifica que el email proporcionado no esté ya registrado en la base de datos.
@@ -132,15 +133,18 @@ public class AuthenticationService {
         //   (commit) automáticamente al finalizar sin excepciones
         // - Si ocurre una excepción, la transacción se revierte automáticamente (rollback)
         //   garantizando la consistencia de datos
-        usuarioRepository.save(usuario);
-        
+        Usuario guardado = usuarioRepository.save(usuario);
+
         // ==================== PASO 4: RETORNO DE RESPUESTA ====================
-        // Retorna un mensaje de confirmación al cliente informando que el registro fue exitoso.
-        // En el futuro, se podría mejorar esta respuesta para incluir:
-        // - El ID del usuario creado
-        // - Un objeto JSON con los datos del usuario registrado
-        // - Un token de autenticación automático
-        return "User registered successfully";
+        // Retorna los datos del usuario creado (con su id) como JSON, sin la contraseña.
+        // Se devuelve un DTO y no la entidad, para no exponer el hash del password.
+        return new UsuarioResponseDTO(
+                guardado.getId(),
+                guardado.getNombre(),
+                guardado.getApellido(),
+                guardado.getEmail(),
+                guardado.getNombreUsuario(),
+                guardado.getRole().name());
     }
 
     /**

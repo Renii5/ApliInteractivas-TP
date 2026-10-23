@@ -1,124 +1,148 @@
 package com.uade.tpo.e_commerce.exception;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 
+import com.uade.tpo.e_commerce.dto.ErrorResponse;
+
 //TODO: ssanchez - es buena práctica crear excepciones personalizadas para cada error específico, y manejarlas en un controlador de excepciones global con @ControllerAdvice, para centralizar el manejo de errores y evitar repetir código en cada controlador. Por ejemplo, se podría crear una excepción ProductoNotFoundException para manejar el caso cuando no se encuentra un producto, y otra excepción PrecioNegativoException para manejar el caso cuando se intenta guardar un producto con precio negativo. Luego, en el controlador de excepciones global, se podrían manejar estas excepciones y devolver una respuesta adecuada al cliente, como un código de estado HTTP 404 (Not Found) para ProductoNotFoundException, o un código de estado HTTP 400 (Bad Request) para PrecioNegativoException.
 // Anotación que indica que esta clase manejará excepciones de forma global para todos los controladores.
+// Todas las respuestas de error tienen el mismo cuerpo JSON: ErrorResponse (status, error, mensaje, timestamp)
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    // Arma la respuesta HTTP con el código de estado y el ErrorResponse en el body (Spring lo convierte a JSON)
+    private ResponseEntity<ErrorResponse> respuesta(HttpStatus status, String mensaje) {
+        return ResponseEntity.status(status).body(new ErrorResponse(status, mensaje));
+    }
+
     @ExceptionHandler(CategoriaNotFoundException.class)
-    public ResponseEntity<String> manejarCategoriaNoEncontrada(CategoriaNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    public ResponseEntity<ErrorResponse> manejarCategoriaNoEncontrada(CategoriaNotFoundException ex) {
+        return respuesta(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     @ExceptionHandler(UsuarioNotFoundException.class)
-    public ResponseEntity<String> manejarUsuarioNoEncontrado(UsuarioNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    public ResponseEntity<ErrorResponse> manejarUsuarioNoEncontrado(UsuarioNotFoundException ex) {
+        return respuesta(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     @ExceptionHandler(ContrasenaIncorrectaException.class)
-    public ResponseEntity<String> manejarContrasenaIncorrecta(ContrasenaIncorrectaException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+    public ResponseEntity<ErrorResponse> manejarContrasenaIncorrecta(ContrasenaIncorrectaException ex) {
+        return respuesta(HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
 
     @ExceptionHandler(UsuarioAlreadyExistsException.class)
-    public ResponseEntity<String> manejarUsuarioExistente(UsuarioAlreadyExistsException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    public ResponseEntity<ErrorResponse> manejarUsuarioExistente(UsuarioAlreadyExistsException ex) {
+        return respuesta(HttpStatus.CONFLICT, ex.getMessage());
     }
 
     // Anotación que indica que este método manejará las excepciones de tipo ProductoNotFoundException.
     @ExceptionHandler(ProductoNotFoundException.class)
     // Este método se ejecuta cuando se lanza una ProductoNotFoundException.
-    public ResponseEntity<String> ManejarProductoNoEncontrado(ProductoNotFoundException ex) {
-
-        // Devuelve una respuesta con el código de estado HTTP 404 (Not Found) y un cuerpo con el mensaje "Producto no encontrado :)"
-        //representa la respuesta HTTP completa que se envía desde tu controlador al cliente (navegador, aplicación móvil, etc.).
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-        //not_found es el código de error
-        //body va el json con el mensaje de error
-        
+    public ResponseEntity<ErrorResponse> ManejarProductoNoEncontrado(ProductoNotFoundException ex) {
+        // Devuelve una respuesta con el código de estado HTTP 404 (Not Found) y en el body el json con el mensaje de error
+        return respuesta(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     @ExceptionHandler(CarritoNotFoundException.class)
-    public ResponseEntity<String> ManejarCarritoNoEncontrado(CarritoNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    public ResponseEntity<ErrorResponse> ManejarCarritoNoEncontrado(CarritoNotFoundException ex) {
+        return respuesta(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     @ExceptionHandler(PrecioNegativoException.class)
-    public ResponseEntity<String> manejarPrecioNegativo(PrecioNegativoException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    public ResponseEntity<ErrorResponse> manejarPrecioNegativo(PrecioNegativoException ex) {
+        return respuesta(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> manejarArgumentoInvalido(IllegalArgumentException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    public ResponseEntity<ErrorResponse> manejarArgumentoInvalido(IllegalArgumentException ex) {
+        return respuesta(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
+    // Error no previsto: el detalle se registra en el log del servidor y al cliente
+    // se le devuelve un mensaje genérico, para no exponer información interna
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> manejarErroresGenerales(Exception ex) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno: " + ex.getMessage());
+    public ResponseEntity<ErrorResponse> manejarErroresGenerales(Exception ex) {
+        log.error("Error no controlado", ex);
+        return respuesta(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrió un error interno. Intente nuevamente más tarde");
+    }
+
+    // La URL no corresponde a ningún endpoint (ej: /api/productoss)
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> manejarRecursoInexistente(NoResourceFoundException ex) {
+        return respuesta(HttpStatus.NOT_FOUND, "No existe el recurso solicitado");
+    }
+
+    // Un parámetro de la URL tiene un tipo inválido (ej: /api/productos/abc cuando se espera un número)
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> manejarParametroInvalido(MethodArgumentTypeMismatchException ex) {
+        return respuesta(HttpStatus.BAD_REQUEST, "El parámetro '" + ex.getName() + "' tiene un valor inválido");
     }
 
     @ExceptionHandler(NombreUsuarioEnUsoException.class)
-    public ResponseEntity<String> manejarNombreUsuarioEnUso(NombreUsuarioEnUsoException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    public ResponseEntity<ErrorResponse> manejarNombreUsuarioEnUso(NombreUsuarioEnUsoException ex) {
+        return respuesta(HttpStatus.CONFLICT, ex.getMessage());
     }
 
     @ExceptionHandler(UsernameNotFoundException.class)
-    public ResponseEntity<String> manejarUsernameNoEncontrado(UsernameNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    public ResponseEntity<ErrorResponse> manejarUsernameNoEncontrado(UsernameNotFoundException ex) {
+        return respuesta(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<String> manejarErrorAutenticacion(AuthenticationException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error de autenticación");
+    public ResponseEntity<ErrorResponse> manejarErrorAutenticacion(AuthenticationException ex) {
+        return respuesta(HttpStatus.UNAUTHORIZED, "Error de autenticación");
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<String> manejarAccesoDenegado(AccessDeniedException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("No tiene permisos para realizar esta acción");
+    public ResponseEntity<ErrorResponse> manejarAccesoDenegado(AccessDeniedException ex) {
+        return respuesta(HttpStatus.FORBIDDEN, "No tiene permisos para realizar esta acción");
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<String> manejarBodyInvalido(HttpMessageNotReadableException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El cuerpo de la request falta o tiene un formato inválido");
+    public ResponseEntity<ErrorResponse> manejarBodyInvalido(HttpMessageNotReadableException ex) {
+        return respuesta(HttpStatus.BAD_REQUEST, "El cuerpo de la request falta o tiene un formato inválido");
     }
 
     @ExceptionHandler(ProductoNoPropioException.class)
-    public ResponseEntity<String> manejarProductoNoPropio(ProductoNoPropioException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    public ResponseEntity<ErrorResponse> manejarProductoNoPropio(ProductoNoPropioException ex) {
+        return respuesta(HttpStatus.FORBIDDEN, ex.getMessage());
     }
 
     @ExceptionHandler(CategoriaConProductosException.class)
-    public ResponseEntity<String> manejarCategoriaConProductos(CategoriaConProductosException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    public ResponseEntity<ErrorResponse> manejarCategoriaConProductos(CategoriaConProductosException ex) {
+        return respuesta(HttpStatus.CONFLICT, ex.getMessage());
     }
 
     @ExceptionHandler(StockInsuficienteException.class)
-    public ResponseEntity<String> manejarStockInsuficiente(StockInsuficienteException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    public ResponseEntity<ErrorResponse> manejarStockInsuficiente(StockInsuficienteException ex) {
+        return respuesta(HttpStatus.CONFLICT, ex.getMessage());
     }
 
     @ExceptionHandler(ProductoNoEnCarritoException.class)
-    public ResponseEntity<String> manejarProductoNoEnCarrito(ProductoNoEnCarritoException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    public ResponseEntity<ErrorResponse> manejarProductoNoEnCarrito(ProductoNoEnCarritoException ex) {
+        return respuesta(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     @ExceptionHandler(OrdenNotFoundException.class)
-    public ResponseEntity<String> manejarOrdenNoEncontrada(OrdenNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    public ResponseEntity<ErrorResponse> manejarOrdenNoEncontrada(OrdenNotFoundException ex) {
+        return respuesta(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     @ExceptionHandler(ProductoConVentasException.class)
-    public ResponseEntity<String> manejarProductoConVentas(ProductoConVentasException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    public ResponseEntity<ErrorResponse> manejarProductoConVentas(ProductoConVentasException ex) {
+        return respuesta(HttpStatus.CONFLICT, ex.getMessage());
     }
 }

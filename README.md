@@ -95,13 +95,13 @@ Base URL: `http://localhost:8080`
 
 | Método | Endpoint | Descripción | Acceso | Respuesta |
 | :--- | :--- | :--- | :--- | :--- |
-| `POST` | `/api/usuarios/register` | Registra un usuario nuevo (rol `USER` por defecto). | Público | `200` / `409` si el email ya existe |
+| `POST` | `/api/usuarios/register` | Registra un usuario nuevo (rol `USER` por defecto) y devuelve sus datos (`UsuarioResponseDTO`, sin contraseña). | Público | `201` / `409` si el email o el nombre de usuario ya existen |
 | `POST` | `/api/usuarios/login` | Valida credenciales y devuelve el JWT. | Público | `200` con token / `401` / `404` |
 
 Body de registro:
 
 ```json
-{ "nombre": "Juan", "apellido": "Perez", "email": "juan@mail.com", "password": "1234" }
+{ "nombre": "Juan", "apellido": "Perez", "email": "juan@mail.com", "nombreUsuario": "juanp", "password": "1234" }
 ```
 
 Body de login:
@@ -215,8 +215,15 @@ El enum `Role` define `USER`, `ADMIN` y `VENDEDOR`. Las autoridades se exponen a
 | `ProductoNotFoundException`, `CategoriaNotFoundException`, `CarritoNotFoundException`, `UsuarioNotFoundException`, `ProductoNoEnCarritoException`, `OrdenNotFoundException` | `404 Not Found` |
 | `ContrasenaIncorrectaException` | `401 Unauthorized` |
 | `UsuarioAlreadyExistsException`, `StockInsuficienteException`, `ProductoConVentasException` | `409 Conflict` |
-| `PrecioNegativoException`, `CantidadInvalidaException`, `CarritoVacioException`, `IllegalArgumentException` | `400 Bad Request` |
-| `Exception` (fallback) | `500 Internal Server Error` |
+| `PrecioNegativoException`, `CantidadInvalidaException`, `CarritoVacioException`, `IllegalArgumentException`, body inválido, parámetro de URL con tipo inválido | `400 Bad Request` |
+| URL que no corresponde a ningún endpoint | `404 Not Found` |
+| `Exception` (fallback; el detalle queda en el log del servidor, al cliente se le da un mensaje genérico) | `500 Internal Server Error` |
+
+Todas las respuestas de error, incluidos los `401`/`403` que genera `SecurityConfig`, tienen el mismo cuerpo JSON (`ErrorResponse`):
+
+```json
+{ "status": 404, "error": "Not Found", "mensaje": "No se encontró el producto con id: 99", "timestamp": "2026-10-23T19:30:00" }
+```
 
 ---
 

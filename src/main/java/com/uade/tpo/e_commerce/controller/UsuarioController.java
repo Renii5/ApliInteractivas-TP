@@ -27,7 +27,7 @@ public class UsuarioController {
     private final UsuarioService usuarioService;
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<UsuarioResponseDTO> register(@RequestBody RegisterRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authenticationService.register(request));
     }
 
