@@ -31,6 +31,7 @@ package "Contexto de Productos" #E8F8E8 {
         -id: Long
         -nombre: String
         -description: String
+        -imageUrl: String
         -precio: double
         -categoria: Categoria
         -stock: int

@@ -71,7 +71,7 @@ Las versiones renderizadas en SVG están en [`docs/imgDiagrams/`](docs/imgDiagra
 | :--- | :--- | :--- | :--- |
 | `Usuario` | `usuarios` | id, nombre, apellido, email (único), password (BCrypt), role | Implementa `UserDetails` de Spring Security |
 | `Categoria` | `categorias` | id, nombre | — |
-| `Producto` | `productos` | id, nombre, description, precio | `@ManyToOne` → `Categoria` |
+| `Producto` | `productos` | id, nombre, description, image_url, precio, stock | `@ManyToOne` → `Categoria` |
 | `Carrito` | `carrito` | id | `@OneToOne` → `Usuario` (un carrito por usuario) |
 | `CarritoProductos` | `carrito_productos` | id, cantidad | `@ManyToOne` → `Carrito`, `@ManyToOne` → `Producto`; único (carrito, producto) |
 | `Orden` | `ordenes` | id, fecha, total | `@ManyToOne` → `Usuario` (comprador), `@OneToMany` → `OrdenItem` (cascade) |

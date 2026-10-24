@@ -60,6 +60,7 @@ public class FavoritoService {
                 producto.getId(),
                 producto.getNombre(),
                 producto.getDescription(),
+                producto.getImageUrl(),
                 producto.getPrecio(),
                 producto.getStock(),
                 producto.getStock() > 0,

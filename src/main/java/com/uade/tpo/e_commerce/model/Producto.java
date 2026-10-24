@@ -29,6 +29,9 @@ public class Producto {
     @Column
     private String description;
 
+    @Column(name = "image_url", length = 2048)
+    private String imageUrl;
+
     @Column
     private double precio;
 
@@ -39,8 +42,10 @@ public class Producto {
     @JoinColumn(name = "categoria_id", nullable = false)
     private Categoria categoria;
 
-    // Usuario que publicó el producto. Se asigna desde el token, nunca desde el body.
-    // Es nullable para no romper los productos que ya existían antes de agregar la columna
+    // Usuario que publicó el producto. Se asigna desde el token, nunca desde el
+    // body.
+    // Es nullable para no romper los productos que ya existían antes de agregar la
+    // columna
     @ManyToOne
     @JoinColumn(name = "vendedor_id")
     private Usuario vendedor;

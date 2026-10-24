@@ -505,7 +505,7 @@
 						},
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"nombre\": \"Fuente 750W\",\n  \"descripcion\": \"80 Plus Gold, modular\",\n  \"precio\": 110000,\n  \"stock\": 6,\n  \"categoriaId\": 5\n}",
+							"raw": "{\n  \"nombre\": \"Fuente 750W\",\n  \"descripcion\": \"80 Plus Gold, modular\",\n  \"image_url\": \"https://placehold.co/600x400?text=Fuente+750W\",\n  \"precio\": 110000,\n  \"stock\": 6,\n  \"categoriaId\": 5\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -601,7 +601,7 @@
 						},
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"nombre\": \"Mouse inalámbrico Pro\",\n  \"descripcion\": \"6 botones, 26000 DPI\",\n  \"precio\": 25000,\n  \"stock\": 10,\n  \"categoriaId\": 5\n}",
+							"raw": "{\n  \"nombre\": \"Mouse inalámbrico Pro\",\n  \"descripcion\": \"6 botones, 26000 DPI\",\n  \"image_url\": \"https://placehold.co/600x400?text=Mouse+Pro\",\n  \"precio\": 25000,\n  \"stock\": 10,\n  \"categoriaId\": 5\n}",
 							"options": {
 								"raw": {
 									"language": "json"

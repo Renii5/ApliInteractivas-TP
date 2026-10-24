@@ -45,11 +45,11 @@ public class CarritoService {
     private final OrdenService ordenService;
 
     public CarritoService(CarritoRepository carritoRepository,
-                          CarritoProductosRepository carritoProductosRepository,
-                          ProductoRepository productoRepository,
-                          UsuarioRepository usuarioRepository,
-                          OrdenRepository ordenRepository,
-                          OrdenService ordenService) {
+            CarritoProductosRepository carritoProductosRepository,
+            ProductoRepository productoRepository,
+            UsuarioRepository usuarioRepository,
+            OrdenRepository ordenRepository,
+            OrdenService ordenService) {
         this.carritoRepository = carritoRepository;
         this.carritoProductosRepository = carritoProductosRepository;
         this.productoRepository = productoRepository;
@@ -112,7 +112,8 @@ public class CarritoService {
 
     /**
      * Checkout: convierte el carrito en una Orden.
-     * Gracias a @Transactional (de la clase), todos los pasos son una sola transacción:
+     * Gracias a @Transactional (de la clase), todos los pasos son una sola
+     * transacción:
      * si alguno lanza una excepción se hace rollback y no queda stock descontado
      * ni una orden a medio crear.
      */
@@ -158,7 +159,8 @@ public class CarritoService {
         return ordenService.toDTO(guardada);
     }
 
-    // Cada usuario tiene un único carrito: si todavía no lo tiene, se crea en ese momento
+    // Cada usuario tiene un único carrito: si todavía no lo tiene, se crea en ese
+    // momento
     private Carrito obtenerOCrearCarrito(String email) {
         return carritoRepository.findByUsuarioEmail(email)
                 .orElseGet(() -> carritoRepository.save(new Carrito(
@@ -197,6 +199,7 @@ public class CarritoService {
                     return new CarritoItemDTO(
                             producto.getId(),
                             producto.getNombre(),
+                            producto.getImageUrl(),
                             producto.getPrecio(),
                             item.getCantidad(),
                             producto.getPrecio() * item.getCantidad(),
