@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -54,16 +55,27 @@ public class ProductoController {
             @RequestParam(required = false) String busqueda,
             @RequestParam(required = false) String orden,
             @RequestParam(required = false) Integer pagina,
-            @RequestParam(required = false) Integer tamanio) {
+            @RequestParam(required = false) Integer tamanio,
+            Authentication authentication) {
+        String emailExcluido = emailLogueado(authentication);
         return ResponseEntity.ok(productoService.getAllProductos(categoriaId, vendedorId,
-                precioMin, precioMax, soloConStock, busqueda, orden, pagina, tamanio));
+                precioMin, precioMax, soloConStock, busqueda, orden, pagina, tamanio, emailExcluido));
     }
 
     // get http://localhost:8080/api/productos/filtros -> opciones para la barra lateral de filtros
     // (declarado antes que /{id}; Spring igual prioriza la ruta literal)
     @GetMapping("/filtros")
-    public ResponseEntity<FiltrosProductoDTO> getOpcionesFiltros() {
-        return ResponseEntity.ok(productoService.getOpcionesFiltros());
+    public ResponseEntity<FiltrosProductoDTO> getOpcionesFiltros(Authentication authentication) {
+        return ResponseEntity.ok(productoService.getOpcionesFiltros(emailLogueado(authentication)));
+    }
+
+    // Los endpoints de catálogo son públicos: sin token (o anónimo) devuelve null.
+    // Con token, el email del usuario cuyos productos no deben mostrarse (no puede comprarlos).
+    private String emailLogueado(Authentication authentication) {
+        return (authentication != null && authentication.isAuthenticated()
+                && !(authentication instanceof AnonymousAuthenticationToken))
+                        ? authentication.getName()
+                        : null;
     }
 
     // get http://localhost:8080/api/productos/mios -> productos publicados por el usuario logueado

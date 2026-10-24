@@ -73,10 +73,15 @@ public class ProductoService {
     @Transactional(Transactional.TxType.SUPPORTS)
     public PaginaProductosDTO getAllProductos(List<Long> categoriaIds, List<Long> vendedorIds,
             Double precioMin, Double precioMax, Boolean soloConStock, String busqueda,
-            String orden, Integer pagina, Integer tamanio) {
+            String orden, Integer pagina, Integer tamanio, String emailExcluido) {
 
         Specification<Producto> spec = (root, query, cb) -> {
             List<Predicate> predicados = new ArrayList<>();
+            // Un usuario logueado no ve sus propios productos: no puede comprárselos
+            if (emailExcluido != null) {
+                predicados.add(cb.or(cb.isNull(root.get("vendedor")),
+                        cb.notEqual(root.get("vendedor").get("email"), emailExcluido)));
+            }
             if (categoriaIds != null && !categoriaIds.isEmpty()) {
                 predicados.add(root.get("categoria").get("id").in(categoriaIds));
             }
@@ -127,13 +132,15 @@ public class ProductoService {
 
     // Datos para la barra lateral de filtros
     @Transactional(Transactional.TxType.SUPPORTS)
-    public FiltrosProductoDTO getOpcionesFiltros() {
+    public FiltrosProductoDTO getOpcionesFiltros(String emailExcluido) {
+        // "" no coincide con ningún email: sin usuario logueado no se excluye nada
+        String email = emailExcluido == null ? "" : emailExcluido;
         return new FiltrosProductoDTO(
-                aOpciones(productoRepository.contarPorCategoria()),
-                aOpciones(productoRepository.contarPorVendedor()),
-                productoRepository.precioMinimo(),
-                productoRepository.precioMaximo(),
-                productoRepository.countByStockGreaterThan(0));
+                aOpciones(productoRepository.contarPorCategoria(email)),
+                aOpciones(productoRepository.contarPorVendedor(email)),
+                productoRepository.precioMinimo(email),
+                productoRepository.precioMaximo(email),
+                productoRepository.contarConStockMayorA(0, email));
     }
 
     private List<OpcionFiltroDTO> aOpciones(List<Object[]> filas) {

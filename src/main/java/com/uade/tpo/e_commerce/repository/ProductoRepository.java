@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.uade.tpo.e_commerce.model.Producto;
 
@@ -35,20 +36,24 @@ public interface ProductoRepository extends JpaRepository<Producto, Long>, JpaSp
     boolean existsByCategoriaId(Long categoriaId);
 
     // Opciones de filtro: [id, nombre, cantidad de productos]
-    @Query("select p.categoria.id, p.categoria.nombre, count(p) from Producto p "
+    // Todas excluyen los productos del vendedor con el email dado ("" = no excluir a nadie)
+    @Query("select p.categoria.id, p.categoria.nombre, count(p) from Producto p left join p.vendedor v "
+            + "where v is null or v.email <> :email "
             + "group by p.categoria.id, p.categoria.nombre order by p.categoria.nombre")
-    List<Object[]> contarPorCategoria();
+    List<Object[]> contarPorCategoria(@Param("email") String email);
 
-    @Query("select p.vendedor.id, p.vendedor.nombreUsuario, count(p) from Producto p "
-            + "where p.vendedor is not null "
-            + "group by p.vendedor.id, p.vendedor.nombreUsuario order by p.vendedor.nombreUsuario")
-    List<Object[]> contarPorVendedor();
+    @Query("select v.id, v.nombreUsuario, count(p) from Producto p join p.vendedor v "
+            + "where v.email <> :email "
+            + "group by v.id, v.nombreUsuario order by v.nombreUsuario")
+    List<Object[]> contarPorVendedor(@Param("email") String email);
 
-    @Query("select min(p.precio) from Producto p")
-    Double precioMinimo();
+    @Query("select min(p.precio) from Producto p left join p.vendedor v where v is null or v.email <> :email")
+    Double precioMinimo(@Param("email") String email);
 
-    @Query("select max(p.precio) from Producto p")
-    Double precioMaximo();
+    @Query("select max(p.precio) from Producto p left join p.vendedor v where v is null or v.email <> :email")
+    Double precioMaximo(@Param("email") String email);
 
-    long countByStockGreaterThan(Integer stock);
+    @Query("select count(p) from Producto p left join p.vendedor v "
+            + "where p.stock > :stock and (v is null or v.email <> :email)")
+    long contarConStockMayorA(@Param("stock") Integer stock, @Param("email") String email);
 }
