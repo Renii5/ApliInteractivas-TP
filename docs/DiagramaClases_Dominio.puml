@@ -29,6 +29,7 @@ package "Modelos de Dominio" {
         -id: Long
         -nombre: String
         -description: String
+        -imageUrl: String
         -precio: double
         -categoria: Categoria
         -stock: int

@@ -52,11 +52,11 @@ public class ProductoService {
     private final OrdenItemRepository ordenItemRepository;
 
     public ProductoService(ProductoRepository productoRepository,
-                           CategoriaRepository categoriaRepository,
-                           UsuarioRepository usuarioRepository,
-                           CarritoProductosRepository carritoProductosRepository,
-                           FavoritoRepository favoritoRepository,
-                           OrdenItemRepository ordenItemRepository) {
+            CategoriaRepository categoriaRepository,
+            UsuarioRepository usuarioRepository,
+            CarritoProductosRepository carritoProductosRepository,
+            FavoritoRepository favoritoRepository,
+            OrdenItemRepository ordenItemRepository) {
         this.productoRepository = productoRepository;
         this.categoriaRepository = categoriaRepository;
         this.usuarioRepository = usuarioRepository;
@@ -161,6 +161,7 @@ public class ProductoService {
         Producto producto = new Producto();
         producto.setNombre(productoRequest.getNombre());
         producto.setDescription(productoRequest.getDescripcion());
+        producto.setImageUrl(productoRequest.getImageUrl());
         producto.setPrecio(productoRequest.getPrecio());
         producto.setStock(productoRequest.getStock());
         producto.setCategoria(obtenerCategoria(productoRequest.getCategoriaId()));
@@ -179,6 +180,7 @@ public class ProductoService {
 
         producto.setNombre(productoRequest.getNombre());
         producto.setDescription(productoRequest.getDescripcion());
+        producto.setImageUrl(productoRequest.getImageUrl());
         producto.setPrecio(productoRequest.getPrecio());
         producto.setStock(productoRequest.getStock());
         producto.setCategoria(obtenerCategoria(productoRequest.getCategoriaId()));
@@ -200,13 +202,15 @@ public class ProductoService {
         Producto producto = obtenerProducto(id);
         validarDueno(producto, email);
 
-        // Si ya se vendió, borrarlo rompería el histórico de órdenes (FK de orden_items)
+        // Si ya se vendió, borrarlo rompería el histórico de órdenes (FK de
+        // orden_items)
         if (ordenItemRepository.existsByProductoId(id)) {
             throw new ProductoConVentasException();
         }
 
         // Primero se saca de los carritos que lo tengan: si no, borrarlo violaría
-        // la FK de carrito_productos. Todo corre en la misma transacción (@Transactional)
+        // la FK de carrito_productos. Todo corre en la misma transacción
+        // (@Transactional)
         carritoProductosRepository.deleteByProductoId(id);
         favoritoRepository.deleteByProductoId(id);
         productoRepository.delete(producto);
@@ -257,6 +261,7 @@ public class ProductoService {
                 producto.getId(),
                 producto.getNombre(),
                 producto.getDescription(),
+                producto.getImageUrl(),
                 producto.getPrecio(),
                 producto.getStock(),
                 producto.getStock() > 0,

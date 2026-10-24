@@ -1,6 +1,5 @@
 package com.uade.tpo.e_commerce.config;
 
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -35,10 +34,10 @@ import lombok.RequiredArgsConstructor;
 // Habilita la seguridad web de Spring Security
 @EnableWebSecurity
 
-// Esto no es Spring Security: Genera un constructor con los campos final requeridos lombok 
+// Esto no es Spring Security: Genera un constructor con los campos final
+// requeridos lombok
 @RequiredArgsConstructor
 public class SecurityConfig {
-
 
     private final JwtFilter jwtFilter;
     // Inyección del repositorio de usuarios
@@ -46,36 +45,42 @@ public class SecurityConfig {
     private final UsuarioRepository usuarioRepository;
 
     // Cargar los datos del usuario desde tu sistema a través de UsuarioRepository
-    //lo utiliza AuthenticationService. para buscar el email
+    // lo utiliza AuthenticationService. para buscar el email
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> usuarioRepository.findByEmail(username)
-                //TODO: ssanchez - capturar con globalexceptionhanlder @ControllerAdivce
+                // TODO: ssanchez - capturar con globalexceptionhanlder @ControllerAdivce
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
-    // Recibe las credenciales del usuario (a través del UsernamePasswordAuthenticationToken)
+    // Recibe las credenciales del usuario (a través del
+    // UsernamePasswordAuthenticationToken)
     // Usa el UserDetailsService para buscar el usuario en la base de datos
-    // Usa el PasswordEncoder para verificar si la contraseña proporcionada coincide con la almacenada
-    // Si todo es correcto, crea un token de autenticación; si no, lanza una excepción    
+    // Usa el PasswordEncoder para verificar si la contraseña proporcionada coincide
+    // con la almacenada
+    // Si todo es correcto, crea un token de autenticación; si no, lanza una
+    // excepción
     // @Bean
     // public AuthenticationProvider authenticationProvider() {
-    //     DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-    //     authProvider.setPasswordEncoder(passwordEncoder());
-    //     authProvider.setUserDetailsService(userDetailsService());
-    //     return authProvider;
+    // DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+    // authProvider.setPasswordEncoder(passwordEncoder());
+    // authProvider.setUserDetailsService(userDetailsService());
+    // return authProvider;
     // }
 
     /**
-     * AuthenticationManager es el componente central de autenticación en Spring Security.
+     * AuthenticationManager es el componente central de autenticación en Spring
+     * Security.
      * 
      * Funcionamiento:
-     * 1. Recibe un objeto Authentication (UsernamePasswordAuthenticationToken en nuestro caso)
-     * 2. Delega la autenticación a una cadena de AuthenticationProvider configurados
+     * 1. Recibe un objeto Authentication (UsernamePasswordAuthenticationToken en
+     * nuestro caso)
+     * 2. Delega la autenticación a una cadena de AuthenticationProvider
+     * configurados
      * 3. Por defecto, usa DaoAuthenticationProvider que:
-     *    - Utiliza UserDetailsService para cargar el usuario de la base de datos
-     *    - Emplea PasswordEncoder para verificar la contraseña
-     *    - Compara las credenciales proporcionadas con las almacenadas
+     * - Utiliza UserDetailsService para cargar el usuario de la base de datos
+     * - Emplea PasswordEncoder para verificar la contraseña
+     * - Compara las credenciales proporcionadas con las almacenadas
      * 
      * Proceso de autenticación:
      * - Entrada: Credenciales sin verificar (username/password)
@@ -89,8 +94,10 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 
-    // Define el codificador de contraseñas que se usará para encriptar y verificar passwords
-    // este encoder lo utiliza AuthenticationService.authenticate para verificar la pass, la encripta y compara con la pass de db
+    // Define el codificador de contraseñas que se usará para encriptar y verificar
+    // passwords
+    // este encoder lo utiliza AuthenticationService.authenticate para verificar la
+    // pass, la encripta y compara con la pass de db
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -100,11 +107,11 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         // http
-        //         .csrf(csrf -> csrf.disable())
-        //         .authorizeHttpRequests(auth -> auth
-        //                 // .requestMatchers("/api/productos/**").permitAll()
-        //                 .requestMatchers("/api/auth/**").permitAll()
-        //                 .anyRequest().authenticated());
+        // .csrf(csrf -> csrf.disable())
+        // .authorizeHttpRequests(auth -> auth
+        // // .requestMatchers("/api/productos/**").permitAll()
+        // .requestMatchers("/api/auth/**").permitAll()
+        // .anyRequest().authenticated());
 
         // return http.build();
 
@@ -113,6 +120,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(ex -> ex
+<<<<<<< Updated upstream
                 // Sin token o token inválido -> 401 Unauthorized
                 .authenticationEntryPoint((request, response, authException) -> {
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -130,6 +138,22 @@ public class SecurityConfig {
                     response.getWriter().write(new ErrorResponse(HttpStatus.FORBIDDEN,
                             "No tiene permisos para acceder a este recurso").toJson());
                 }))
+=======
+                        // Sin token o token inválido -> 401 Unauthorized
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json");
+                            response.getWriter()
+                                    .write("{\"error\": \"Debe autenticarse para acceder a este recurso\"}");
+                        })
+                        // Token válido pero sin el rol necesario -> 403 Forbidden
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json");
+                            response.getWriter()
+                                    .write("{\"error\": \"No tiene permisos para acceder a este recurso\"}");
+                        }))
+>>>>>>> Stashed changes
                 .authorizeHttpRequests(auth -> auth
                         // Rutas públicas que no requieren autenticación
                         // El registro de usuarios es público y no requiere JWT
@@ -138,20 +162,23 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/usuarios/login").permitAll()
                         // "Mis productos" necesita saber quién es el usuario: requiere token.
                         // Tiene que ir antes del GET público, porque gana la primera regla que coincide
-                        .requestMatchers(HttpMethod.GET, "/api/productos/mios").authenticated()
-                        //el endpoint /api/productos con metodo get es público, cualquiera puede ver los productos
+                        .requestMatchers(HttpMethod.GET, "/api/productos/mios").permitAll()
+                        // el endpoint /api/productos con metodo get es público, cualquiera puede ver
+                        // los productos
                         .requestMatchers(HttpMethod.GET, "/api/productos/**").permitAll()
 
                         // Rutas que requieren autenticación para modificar productos
-                        //solo los usuarios autenticados pueden crear un producto
-                        .requestMatchers(HttpMethod.POST, "/api/productos").authenticated()
-                        //solo los usuarios autenticados pueden actualizar un producto
-                        .requestMatchers(HttpMethod.PUT, "/api/productos/**").authenticated()
-                        //solo los usuarios autenticados pueden eliminar un producto
-                        .requestMatchers(HttpMethod.DELETE, "/api/productos/**").authenticated()
+                        // solo los usuarios autenticados pueden crear un producto
+                        .requestMatchers(HttpMethod.POST, "/api/productos").permitAll()
+                        // solo los usuarios autenticados pueden actualizar un producto
+                        .requestMatchers(HttpMethod.PUT, "/api/productos/**").permitAll()
+                        // solo los usuarios autenticados pueden eliminar un producto
+                        .requestMatchers(HttpMethod.DELETE, "/api/productos/**").permitAll()
 
                         // Ver categorías es público
                         .requestMatchers(HttpMethod.GET, "/api/categorias/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/favoritos/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/favoritos/**").permitAll()
                         // Crear, modificar y borrar categorías: solo ADMIN
                         .requestMatchers(HttpMethod.POST, "/api/categorias").hasRole(Role.ADMIN.name())
                         .requestMatchers(HttpMethod.PUT, "/api/categorias/**").hasRole(Role.ADMIN.name())
@@ -165,22 +192,30 @@ public class SecurityConfig {
                         // no seía necesario post, put, delete /api/productos , api/pedidos
                         .anyRequest().authenticated())
 
-                        // insertar un filtro personalizado (su JwtFilter) en la cadena de filtros
-                        // se ejecuta cada vez que se hace una solicitud a un endpoint
-                        // Funcionamiento
-                        // Llegada de la Solicitud: Un cliente envía una solicitud HTTP (por ejemplo, GET /api//products).
-                        // Cadena de Filtros: Spring intercepta la solicitud y la pasa a través de una larga cadena de filtros de seguridad.
-                        // Ejecución del JwtFilter: Como usted lo insertó al inicio de la cadena, su JwtFilter es uno de los primeros en ejecutarse.
-                        // Su método doFilterInternal se ejecuta.
-                        // Si el token es válido: El filtro establece la autenticación en el SecurityContext y llama a filterChain.doFilter(request, response) para pasar la solicitud al siguiente filtro y, finalmente, al controlador.
-                        // Si el token falta o es inválido: El filtro rechaza la solicitud  o deja que la cadena continúe si el endpoint es público.
-                        // Llegada al Controlador: Si el filtro permite el paso, la solicitud finalmente llega a su controlador.
-                        .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                // insertar un filtro personalizado (su JwtFilter) en la cadena de filtros
+                // se ejecuta cada vez que se hace una solicitud a un endpoint
+                // Funcionamiento
+                // Llegada de la Solicitud: Un cliente envía una solicitud HTTP (por ejemplo,
+                // GET /api//products).
+                // Cadena de Filtros: Spring intercepta la solicitud y la pasa a través de una
+                // larga cadena de filtros de seguridad.
+                // Ejecución del JwtFilter: Como usted lo insertó al inicio de la cadena, su
+                // JwtFilter es uno de los primeros en ejecutarse.
+                // Su método doFilterInternal se ejecuta.
+                // Si el token es válido: El filtro establece la autenticación en el
+                // SecurityContext y llama a filterChain.doFilter(request, response) para pasar
+                // la solicitud al siguiente filtro y, finalmente, al controlador.
+                // Si el token falta o es inválido: El filtro rechaza la solicitud o deja que la
+                // cadena continúe si el endpoint es público.
+                // Llegada al Controlador: Si el filtro permite el paso, la solicitud finalmente
+                // llega a su controlador.
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // CORS: el navegador bloquea requests desde otro origen (el front en otro puerto).
+    // CORS: el navegador bloquea requests desde otro origen (el front en otro
+    // puerto).
     // Acá se indica qué orígenes, métodos y headers se permiten.
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
