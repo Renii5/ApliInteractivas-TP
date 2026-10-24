@@ -120,7 +120,6 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(ex -> ex
-<<<<<<< Updated upstream
                 // Sin token o token inválido -> 401 Unauthorized
                 .authenticationEntryPoint((request, response, authException) -> {
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -138,22 +137,6 @@ public class SecurityConfig {
                     response.getWriter().write(new ErrorResponse(HttpStatus.FORBIDDEN,
                             "No tiene permisos para acceder a este recurso").toJson());
                 }))
-=======
-                        // Sin token o token inválido -> 401 Unauthorized
-                        .authenticationEntryPoint((request, response, authException) -> {
-                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                            response.setContentType("application/json");
-                            response.getWriter()
-                                    .write("{\"error\": \"Debe autenticarse para acceder a este recurso\"}");
-                        })
-                        // Token válido pero sin el rol necesario -> 403 Forbidden
-                        .accessDeniedHandler((request, response, accessDeniedException) -> {
-                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                            response.setContentType("application/json");
-                            response.getWriter()
-                                    .write("{\"error\": \"No tiene permisos para acceder a este recurso\"}");
-                        }))
->>>>>>> Stashed changes
                 .authorizeHttpRequests(auth -> auth
                         // Rutas públicas que no requieren autenticación
                         // El registro de usuarios es público y no requiere JWT
@@ -162,7 +145,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/usuarios/login").permitAll()
                         // "Mis productos" necesita saber quién es el usuario: requiere token.
                         // Tiene que ir antes del GET público, porque gana la primera regla que coincide
-                        .requestMatchers(HttpMethod.GET, "/api/productos/mios").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/productos/mios").authenticated()
                         // el endpoint /api/productos con metodo get es público, cualquiera puede ver
                         // los productos
                         .requestMatchers(HttpMethod.GET, "/api/productos/**").permitAll()
