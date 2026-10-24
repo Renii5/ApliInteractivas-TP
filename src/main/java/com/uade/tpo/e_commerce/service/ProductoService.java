@@ -1,9 +1,18 @@
 package com.uade.tpo.e_commerce.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import com.uade.tpo.e_commerce.dto.FiltrosProductoDTO;
+import com.uade.tpo.e_commerce.dto.OpcionFiltroDTO;
+import com.uade.tpo.e_commerce.dto.PaginaProductosDTO;
 import com.uade.tpo.e_commerce.dto.ProductoRequestDTO;
 import com.uade.tpo.e_commerce.dto.ProductoResponseDTO;
 import com.uade.tpo.e_commerce.exception.CategoriaNotFoundException;
@@ -24,6 +33,7 @@ import com.uade.tpo.e_commerce.repository.OrdenItemRepository;
 import com.uade.tpo.e_commerce.repository.ProductoRepository;
 import com.uade.tpo.e_commerce.repository.UsuarioRepository;
 
+import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 
 /**
@@ -55,17 +65,81 @@ public class ProductoService {
         this.ordenItemRepository = ordenItemRepository;
     }
 
-    // Listado ordenado alfabéticamente, con filtro opcional por categoría o por nombre
-    public List<ProductoResponseDTO> getAllProductos(Long categoriaId, String busqueda) {
-        List<Producto> productos;
-        if (categoriaId != null) {
-            productos = productoRepository.findByCategoriaIdOrderByNombreAsc(categoriaId);
-        } else if (busqueda != null && !busqueda.isBlank()) {
-            productos = productoRepository.findByNombreContainingIgnoreCaseOrderByNombreAsc(busqueda);
-        } else {
-            productos = productoRepository.findAllByOrderByNombreAsc();
+    private static final int TAMANIO_PAGINA_DEFAULT = 9;
+    private static final int TAMANIO_PAGINA_MAXIMO = 100;
+
+    // Listado con filtros combinables (AND entre filtros, OR dentro de categorías/vendedores),
+    // orden y paginación (página base 1). Todos los parámetros son opcionales.
+    @Transactional(Transactional.TxType.SUPPORTS)
+    public PaginaProductosDTO getAllProductos(List<Long> categoriaIds, List<Long> vendedorIds,
+            Double precioMin, Double precioMax, Boolean soloConStock, String busqueda,
+            String orden, Integer pagina, Integer tamanio) {
+
+        Specification<Producto> spec = (root, query, cb) -> {
+            List<Predicate> predicados = new ArrayList<>();
+            if (categoriaIds != null && !categoriaIds.isEmpty()) {
+                predicados.add(root.get("categoria").get("id").in(categoriaIds));
+            }
+            if (vendedorIds != null && !vendedorIds.isEmpty()) {
+                predicados.add(root.get("vendedor").get("id").in(vendedorIds));
+            }
+            if (precioMin != null) {
+                predicados.add(cb.greaterThanOrEqualTo(root.<Double>get("precio"), precioMin));
+            }
+            if (precioMax != null) {
+                predicados.add(cb.lessThanOrEqualTo(root.<Double>get("precio"), precioMax));
+            }
+            if (Boolean.TRUE.equals(soloConStock)) {
+                predicados.add(cb.greaterThan(root.<Integer>get("stock"), 0));
+            }
+            if (busqueda != null && !busqueda.isBlank()) {
+                predicados.add(cb.like(cb.lower(root.<String>get("nombre")),
+                        "%" + busqueda.trim().toLowerCase() + "%"));
+            }
+            return cb.and(predicados.toArray(new Predicate[0]));
+        };
+
+        int numeroPagina = (pagina == null || pagina < 1) ? 1 : pagina;
+        int tam = (tamanio == null || tamanio < 1) ? TAMANIO_PAGINA_DEFAULT
+                : Math.min(tamanio, TAMANIO_PAGINA_MAXIMO);
+        // id como desempate para que la paginación sea estable
+        Pageable pageable = PageRequest.of(numeroPagina - 1, tam, resolverOrden(orden).and(Sort.by("id")));
+
+        Page<Producto> resultado = productoRepository.findAll(spec, pageable);
+        return new PaginaProductosDTO(
+                resultado.getContent().stream().map(this::toDTO).toList(),
+                resultado.getTotalElements(),
+                resultado.getTotalPages(),
+                numeroPagina,
+                tam);
+    }
+
+    // Orden por defecto (o valor desconocido): nombre A-Z, como el listado original
+    private Sort resolverOrden(String orden) {
+        if ("precio_asc".equalsIgnoreCase(orden)) {
+            return Sort.by(Sort.Direction.ASC, "precio");
         }
-        return productos.stream().map(this::toDTO).toList();
+        if ("precio_desc".equalsIgnoreCase(orden)) {
+            return Sort.by(Sort.Direction.DESC, "precio");
+        }
+        return Sort.by(Sort.Direction.ASC, "nombre");
+    }
+
+    // Datos para la barra lateral de filtros
+    @Transactional(Transactional.TxType.SUPPORTS)
+    public FiltrosProductoDTO getOpcionesFiltros() {
+        return new FiltrosProductoDTO(
+                aOpciones(productoRepository.contarPorCategoria()),
+                aOpciones(productoRepository.contarPorVendedor()),
+                productoRepository.precioMinimo(),
+                productoRepository.precioMaximo(),
+                productoRepository.countByStockGreaterThan(0));
+    }
+
+    private List<OpcionFiltroDTO> aOpciones(List<Object[]> filas) {
+        return filas.stream()
+                .map(f -> new OpcionFiltroDTO((Long) f[0], (String) f[1], (Long) f[2]))
+                .toList();
     }
 
     public ProductoResponseDTO getProductoById(Long id) {

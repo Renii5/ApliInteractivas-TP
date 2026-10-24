@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.uade.tpo.e_commerce.dto.FiltrosProductoDTO;
+import com.uade.tpo.e_commerce.dto.PaginaProductosDTO;
 import com.uade.tpo.e_commerce.dto.ProductoRequestDTO;
 import com.uade.tpo.e_commerce.dto.ProductoResponseDTO;
 import com.uade.tpo.e_commerce.dto.StockRequestDTO;
@@ -36,14 +38,32 @@ public class ProductoController {
         this.productoService = productoService;
     }
 
-    // get http://localhost:8080/api/productos -> todos, ordenados alfabéticamente
-    // get http://localhost:8080/api/productos?categoriaId=1 -> filtrados por categoría
-    // get http://localhost:8080/api/productos?busqueda=rtx -> filtrados por nombre
+    // get http://localhost:8080/api/productos -> primera página (9), orden nombre A-Z
+    // Todos los parámetros son opcionales y combinables. categoriaId y vendedorId aceptan
+    // varios valores (?categoriaId=1&categoriaId=2 o ?categoriaId=1,2): coincide con cualquiera.
+    // get .../api/productos?categoriaId=1&vendedorId=3&precioMin=100&precioMax=500
+    //     &soloConStock=true&busqueda=rtx&orden=precio_asc&pagina=2&tamanio=9
+    // orden: precio_asc | precio_desc | nombre_asc (default). pagina es base 1.
     @GetMapping
-    public ResponseEntity<List<ProductoResponseDTO>> getAllProductos(
-            @RequestParam(required = false) Long categoriaId,
-            @RequestParam(required = false) String busqueda) {
-        return ResponseEntity.ok(productoService.getAllProductos(categoriaId, busqueda));
+    public ResponseEntity<PaginaProductosDTO> getAllProductos(
+            @RequestParam(required = false) List<Long> categoriaId,
+            @RequestParam(required = false) List<Long> vendedorId,
+            @RequestParam(required = false) Double precioMin,
+            @RequestParam(required = false) Double precioMax,
+            @RequestParam(required = false) Boolean soloConStock,
+            @RequestParam(required = false) String busqueda,
+            @RequestParam(required = false) String orden,
+            @RequestParam(required = false) Integer pagina,
+            @RequestParam(required = false) Integer tamanio) {
+        return ResponseEntity.ok(productoService.getAllProductos(categoriaId, vendedorId,
+                precioMin, precioMax, soloConStock, busqueda, orden, pagina, tamanio));
+    }
+
+    // get http://localhost:8080/api/productos/filtros -> opciones para la barra lateral de filtros
+    // (declarado antes que /{id}; Spring igual prioriza la ruta literal)
+    @GetMapping("/filtros")
+    public ResponseEntity<FiltrosProductoDTO> getOpcionesFiltros() {
+        return ResponseEntity.ok(productoService.getOpcionesFiltros());
     }
 
     // get http://localhost:8080/api/productos/mios -> productos publicados por el usuario logueado

@@ -227,7 +227,7 @@
 					"response": []
 				},
 				{
-					"name": "Listar productos (orden alfabético)",
+					"name": "Listar productos (página 1, orden alfabético)",
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -256,6 +256,114 @@
 						"method": "GET",
 						"header": [],
 						"url": "http://localhost:8080/api/productos?busqueda=rtx",
+						"auth": {
+							"type": "noauth"
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Varias categorías (cualquiera de ellas)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8080/api/productos?categoriaId=1&categoriaId=5",
+						"auth": {
+							"type": "noauth"
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Varios vendedores (cualquiera de ellos)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8080/api/productos?vendedorId=3,4",
+						"auth": {
+							"type": "noauth"
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Rango de precio (mín y máx)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8080/api/productos?precioMin=100000&precioMax=400000",
+						"auth": {
+							"type": "noauth"
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Solo con stock",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8080/api/productos?soloConStock=true",
+						"auth": {
+							"type": "noauth"
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Orden por precio ascendente",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8080/api/productos?orden=precio_asc",
+						"auth": {
+							"type": "noauth"
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Orden por precio descendente",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8080/api/productos?orden=precio_desc",
+						"auth": {
+							"type": "noauth"
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Paginación (página 2, 9 por página)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8080/api/productos?pagina=2&tamanio=9",
+						"auth": {
+							"type": "noauth"
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Todos los filtros combinados",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8080/api/productos?categoriaId=1&categoriaId=5&vendedorId=3&precioMin=10000&precioMax=900000&soloConStock=true&busqueda=a&orden=precio_asc&pagina=1&tamanio=9",
+						"auth": {
+							"type": "noauth"
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Opciones de filtros (sidebar)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8080/api/productos/filtros",
 						"auth": {
 							"type": "noauth"
 						}
