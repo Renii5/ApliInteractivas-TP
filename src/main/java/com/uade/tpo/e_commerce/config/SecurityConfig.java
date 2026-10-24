@@ -120,69 +120,48 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(ex -> ex
-<<<<<<< Updated upstream
-                // Sin token o token inválido -> 401 Unauthorized
-                .authenticationEntryPoint((request, response, authException) -> {
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.setContentType("application/json");
-                    response.setCharacterEncoding("UTF-8");
-                    // Mismo formato JSON que los errores del GlobalExceptionHandler
-                    response.getWriter().write(new ErrorResponse(HttpStatus.UNAUTHORIZED,
-                            "Debe autenticarse para acceder a este recurso").toJson());
-                })
-                // Token válido pero sin el rol necesario -> 403 Forbidden
-                .accessDeniedHandler((request, response, accessDeniedException) -> {
-                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                    response.setContentType("application/json");
-                    response.setCharacterEncoding("UTF-8");
-                    response.getWriter().write(new ErrorResponse(HttpStatus.FORBIDDEN,
-                            "No tiene permisos para acceder a este recurso").toJson());
-                }))
-=======
                         // Sin token o token inválido -> 401 Unauthorized
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType("application/json");
-                            response.getWriter()
-                                    .write("{\"error\": \"Debe autenticarse para acceder a este recurso\"}");
+                            response.setCharacterEncoding("UTF-8");
+                            response.getWriter().write(new ErrorResponse(HttpStatus.UNAUTHORIZED,
+                                    "Debe autenticarse para acceder a este recurso").toJson());
                         })
                         // Token válido pero sin el rol necesario -> 403 Forbidden
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
                             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                             response.setContentType("application/json");
-                            response.getWriter()
-                                    .write("{\"error\": \"No tiene permisos para acceder a este recurso\"}");
+                            response.setCharacterEncoding("UTF-8");
+                            response.getWriter().write(new ErrorResponse(HttpStatus.FORBIDDEN,
+                                    "No tiene permisos para acceder a este recurso").toJson());
                         }))
->>>>>>> Stashed changes
                 .authorizeHttpRequests(auth -> auth
                         // Rutas públicas que no requieren autenticación
                         // El registro de usuarios es público y no requiere JWT
                         .requestMatchers(HttpMethod.POST, "/api/usuarios/register").permitAll()
                         // El login es público porque genera el JWT
                         .requestMatchers(HttpMethod.POST, "/api/usuarios/login").permitAll()
-                        // "Mis productos" necesita saber quién es el usuario: requiere token.
-                        // Tiene que ir antes del GET público, porque gana la primera regla que coincide
-                        .requestMatchers(HttpMethod.GET, "/api/productos/mios").permitAll()
-                        // el endpoint /api/productos con metodo get es público, cualquiera puede ver
-                        // los productos
+                        // Este endpoint usa la identidad del token, por eso requiere autenticación.
+                        .requestMatchers(HttpMethod.GET, "/api/productos/mios").authenticated()
+                        // El catálogo y el detalle de productos son públicos.
                         .requestMatchers(HttpMethod.GET, "/api/productos/**").permitAll()
 
-                        // Rutas que requieren autenticación para modificar productos
-                        // solo los usuarios autenticados pueden crear un producto
-                        .requestMatchers(HttpMethod.POST, "/api/productos").permitAll()
-                        // solo los usuarios autenticados pueden actualizar un producto
-                        .requestMatchers(HttpMethod.PUT, "/api/productos/**").permitAll()
-                        // solo los usuarios autenticados pueden eliminar un producto
-                        .requestMatchers(HttpMethod.DELETE, "/api/productos/**").permitAll()
+                        // Solo usuarios autenticados pueden publicar, modificar o eliminar productos.
+                        .requestMatchers(HttpMethod.POST, "/api/productos/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/productos/**").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/productos/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/productos/**").authenticated()
 
                         // Ver categorías es público
                         .requestMatchers(HttpMethod.GET, "/api/categorias/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/favoritos/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/favoritos/**").permitAll()
                         // Crear, modificar y borrar categorías: solo ADMIN
                         .requestMatchers(HttpMethod.POST, "/api/categorias").hasRole(Role.ADMIN.name())
                         .requestMatchers(HttpMethod.PUT, "/api/categorias/**").hasRole(Role.ADMIN.name())
                         .requestMatchers(HttpMethod.DELETE, "/api/categorias/**").hasRole(Role.ADMIN.name())
+
+                        // Favoritos, carrito, checkout y órdenes son privados por usuario;
+                        // cualquier ruta no pública requiere autenticación por la regla final.
 
                         // El histórico de ventas completo: solo ADMIN
                         .requestMatchers(HttpMethod.GET, "/api/ventas/**").hasRole(Role.ADMIN.name())
