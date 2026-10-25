@@ -10,6 +10,7 @@ SET NAMES utf8mb4;
 -- por eso se limpian antes los productos y lo que depende de ellos
 DELETE FROM orden_items;
 DELETE FROM carrito_productos;
+DELETE FROM favoritos;
 DELETE FROM productos;
 DELETE FROM categorias;
 

@@ -13,6 +13,7 @@ SET NAMES utf8mb4;
 
 DELETE FROM orden_items;
 DELETE FROM carrito_productos;
+DELETE FROM favoritos;
 DELETE FROM productos;
 
 INSERT INTO productos (id, nombre, description, image_url, precio, stock, categoria_id, vendedor_id) VALUES

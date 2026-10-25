@@ -20,6 +20,7 @@ DELETE FROM orden_items;
 DELETE FROM ordenes;
 DELETE FROM carrito_productos;
 DELETE FROM carrito;
+DELETE FROM favoritos;
 DELETE FROM productos;
 DELETE FROM categorias;
 DELETE FROM usuarios;
