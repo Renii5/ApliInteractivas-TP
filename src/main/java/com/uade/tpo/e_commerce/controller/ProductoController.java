@@ -1,8 +1,10 @@
 package com.uade.tpo.e_commerce.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -16,12 +18,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.uade.tpo.e_commerce.dto.FiltrosProductoDTO;
 import com.uade.tpo.e_commerce.dto.PaginaProductosDTO;
 import com.uade.tpo.e_commerce.dto.ProductoRequestDTO;
 import com.uade.tpo.e_commerce.dto.ProductoResponseDTO;
 import com.uade.tpo.e_commerce.dto.StockRequestDTO;
+import com.uade.tpo.e_commerce.service.ImagenService;
 import com.uade.tpo.e_commerce.service.ProductoService;
 
 /**
@@ -34,9 +38,11 @@ import com.uade.tpo.e_commerce.service.ProductoService;
 public class ProductoController {
 
     private final ProductoService productoService;
+    private final ImagenService imagenService;
 
-    public ProductoController(ProductoService productoService) {
+    public ProductoController(ProductoService productoService, ImagenService imagenService) {
         this.productoService = productoService;
+        this.imagenService = imagenService;
     }
 
     // get http://localhost:8080/api/productos -> primera página (9), orden nombre A-Z
@@ -98,6 +104,13 @@ public class ProductoController {
             Authentication authentication) {
         ProductoResponseDTO productoCreado = productoService.createProducto(productoRequest, authentication.getName());
         return new ResponseEntity<>(productoCreado, HttpStatus.CREATED);
+    }
+
+    // post http://localhost:8080/api/productos/imagen (multipart, campo "imagen") -> guarda la imagen
+    // y devuelve { "image_url": "..." }, para enviarla después en el alta o modificación del producto
+    @PostMapping(value = "/imagen", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String, String>> subirImagen(@RequestParam("imagen") MultipartFile imagen) {
+        return new ResponseEntity<>(Map.of("image_url", imagenService.guardar(imagen)), HttpStatus.CREATED);
     }
 
     // put http://localhost:8080/api/productos/1 -> modifica el producto 1 (solo su vendedor o un ADMIN)

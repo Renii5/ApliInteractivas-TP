@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
@@ -144,5 +146,22 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ProductoConVentasException.class)
     public ResponseEntity<ErrorResponse> manejarProductoConVentas(ProductoConVentasException ex) {
         return respuesta(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ExceptionHandler(ImagenInvalidaException.class)
+    public ResponseEntity<ErrorResponse> manejarImagenInvalida(ImagenInvalidaException ex) {
+        return respuesta(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    // El archivo supera spring.servlet.multipart.max-file-size
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> manejarArchivoMuyGrande(MaxUploadSizeExceededException ex) {
+        return respuesta(HttpStatus.CONTENT_TOO_LARGE, "La imagen supera el tamaño máximo permitido (5 MB)");
+    }
+
+    // Falta una parte del multipart (ej: POST /api/productos/imagen sin el campo "imagen")
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public ResponseEntity<ErrorResponse> manejarParteFaltante(MissingServletRequestPartException ex) {
+        return respuesta(HttpStatus.BAD_REQUEST, "Falta el campo '" + ex.getRequestPartName() + "' en la request");
     }
 }

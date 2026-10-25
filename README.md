@@ -126,6 +126,7 @@ Body de login:
 | :--- | :--- | :--- | :--- | :--- |
 | `GET` | `/api/productos` | Lista todos los productos como `ProductoResponseDTO`. | Público | `200` |
 | `POST` | `/api/productos` | Crea un producto asociado a una categoría existente. | Autenticado | `201` / `400` precio negativo / `404` categoría inexistente |
+| `POST` | `/api/productos/imagen` | Sube una imagen (`multipart/form-data`, campo `imagen`, JPG/PNG/WEBP hasta 5 MB) y devuelve `{ "image_url": "http://localhost:8080/uploads/<uuid>.jpg" }` para usar en el alta o modificación. | Autenticado | `201` / `400` formato inválido / `413` demasiado grande |
 | `PUT` | `/api/productos/{id}` | Actualiza un producto. | Autenticado | `200` / `400` / `404` |
 | `DELETE` | `/api/productos/{id}` | Elimina un producto. | Autenticado | `204` / `404` |
 
@@ -198,7 +199,7 @@ Reglas de acceso definidas en `SecurityConfig`:
 
 | Regla | Endpoints |
 | :--- | :--- |
-| Público | `POST /api/usuarios/register`, `POST /api/usuarios/login`, `GET /api/productos/**`, `/api/categorias/**` |
+| Público | `POST /api/usuarios/register`, `POST /api/usuarios/login`, `GET /api/productos/**`, `/api/categorias/**`, `GET /uploads/**` (imágenes subidas) |
 | Requiere autenticación | `POST`, `PUT` y `DELETE` sobre `/api/productos/**`, `/api/carrito/**`, `/api/ventas`, y cualquier otra ruta |
 | Requiere rol `ADMIN` | `/api/admin/**` |
 
@@ -215,7 +216,8 @@ El enum `Role` define `USER`, `ADMIN` y `VENDEDOR`. Las autoridades se exponen a
 | `ProductoNotFoundException`, `CategoriaNotFoundException`, `CarritoNotFoundException`, `UsuarioNotFoundException`, `ProductoNoEnCarritoException`, `OrdenNotFoundException` | `404 Not Found` |
 | `ContrasenaIncorrectaException` | `401 Unauthorized` |
 | `UsuarioAlreadyExistsException`, `StockInsuficienteException`, `ProductoConVentasException` | `409 Conflict` |
-| `PrecioNegativoException`, `CantidadInvalidaException`, `CarritoVacioException`, `IllegalArgumentException`, body inválido, parámetro de URL con tipo inválido | `400 Bad Request` |
+| `PrecioNegativoException`, `CantidadInvalidaException`, `CarritoVacioException`, `ImagenInvalidaException`, `IllegalArgumentException`, body inválido, parámetro de URL con tipo inválido, campo faltante en un multipart | `400 Bad Request` |
+| `MaxUploadSizeExceededException` (imagen de más de 5 MB) | `413 Content Too Large` |
 | URL que no corresponde a ningún endpoint | `404 Not Found` |
 | `Exception` (fallback; el detalle queda en el log del servidor, al cliente se le da un mensaje genérico) | `500 Internal Server Error` |
 
@@ -270,6 +272,9 @@ Parámetros relevantes de `src/main/resources/application.properties`:
 | `spring.datasource.username` | `root` |
 | `spring.jpa.hibernate.ddl-auto` | `update` |
 | `jwt.expiration` | `86400000` (24 hs) |
+| `app.uploads.dir` | `uploads` (carpeta de imágenes subidas; se crea al arrancar y no se versiona) |
+| `app.public-url` | `http://localhost:8080` (base de la `image_url` que devuelve la subida) |
+| `spring.servlet.multipart.max-file-size` | `5MB` |
 
 > El `jwt.secret` versionado es una clave de desarrollo. En un despliegue real debe moverse a una variable de entorno.
 
