@@ -17,7 +17,7 @@ con autenticación y autorización basada en JWT.
 | **Usuarios / Autenticación** | Registro con hash BCrypt, login con emisión de JWT, roles (`USER`, `ADMIN`, `VENDEDOR`). | Funcional |
 | **Categorías** | ABM completo de categorías de producto. | Funcional |
 | **Productos** | Listado, alta, modificación y baja de productos, asociados a una categoría. | Funcional |
-| **Carrito** | Consulta de los productos que contiene un carrito y eliminación del carrito. | Funcional |
+| **Carrito** | CRUD del carrito y gestión de los productos que contiene. | Funcional |
 | **Ventas** | Consulta del registro histórico de ventas. | Funcional |
 | **Seguridad (plus opcional)** | `SecurityConfig` + filtro JWT propio que protege los endpoints de escritura. | Funcional |
 | **Manejo de errores** | `@ControllerAdvice` global que traduce excepciones de dominio a códigos HTTP. | Funcional |
@@ -138,16 +138,20 @@ Body de alta/modificación:
 
 ### Carrito — `/api/carrito`
 
-Todos los endpoints operan sobre el carrito del usuario autenticado (no reciben id de carrito).
-El carrito se crea automáticamente la primera vez que se usa.
+Las operaciones individuales se limitan al carrito del usuario autenticado; `GET /todos`
+es exclusivo de ADMIN. El carrito también se crea automáticamente la primera vez que se usa.
 
 | Método | Endpoint | Descripción | Acceso | Respuesta |
 | :--- | :--- | :--- | :--- | :--- |
+| `GET` | `/api/carrito/todos` | Lista todos los carritos. | ADMIN | `200` |
 | `GET` | `/api/carrito` | Carrito con ítems, subtotales y total. | Autenticado | `200` |
+| `GET` | `/api/carrito/{id}` | Busca un carrito propio (o cualquiera para ADMIN). | Dueño / ADMIN | `200` / `404` |
+| `POST` | `/api/carrito` | Crea el carrito propio si no existe; si existe, lo devuelve. | Autenticado | `200` |
 | `POST` | `/api/carrito/items` | Agrega un producto (si ya estaba, suma la cantidad). | Autenticado | `200` / `400` / `404` / `409` sin stock |
 | `PUT` | `/api/carrito/items/{productoId}` | Cambia la cantidad de un ítem. | Autenticado | `200` / `400` / `404` / `409` sin stock |
 | `DELETE` | `/api/carrito/items/{productoId}` | Saca un producto del carrito. | Autenticado | `200` / `404` |
 | `DELETE` | `/api/carrito` | Vacía el carrito. | Autenticado | `204` |
+| `DELETE` | `/api/carrito/{id}` | Elimina el carrito y sus ítems. | Dueño / ADMIN | `204` / `404` |
 | `POST` | `/api/carrito/checkout` | Compra el carrito: valida y descuenta stock, genera la orden y vacía el carrito. | Autenticado | `201` / `400` carrito vacío / `409` sin stock |
 
 Bodies:

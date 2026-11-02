@@ -168,6 +168,8 @@ public class SecurityConfig {
 
                         // El histórico de ventas completo: solo ADMIN
                         .requestMatchers(HttpMethod.GET, "/api/ventas/**").hasRole(Role.ADMIN.name())
+                        // El listado global de carritos puede contener información privada.
+                        .requestMatchers(HttpMethod.GET, "/api/carrito/todos").hasRole(Role.ADMIN.name())
 
                         // Cualquier otra ruta requiere autenticación
                         // con esta linea abarca requiere que todos los endpoints esten autenticados

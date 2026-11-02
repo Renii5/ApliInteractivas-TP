@@ -15,4 +15,6 @@ public interface CarritoRepository extends JpaRepository<Carrito, Long> {
     // Query Method: navega la relación carrito.usuario.email.
     // Se usa para obtener el carrito del usuario autenticado (el email viene del token)
     Optional<Carrito> findByUsuarioEmail(String email);
+
+    Optional<Carrito> findByIdAndUsuarioEmail(Long id, String email);
 }

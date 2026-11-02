@@ -1,5 +1,7 @@
 package com.uade.tpo.e_commerce.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -21,8 +23,8 @@ import com.uade.tpo.e_commerce.service.CarritoService;
 /**
  * Encargado de recibir request http desde los clientes
  * y devolver respuestas http con los datos solicitados.
- * Ningún endpoint recibe el id del carrito: siempre se usa el del usuario del token,
- * así nadie puede ver o modificar el carrito de otro.
+ * Las operaciones individuales validan al dueño contra el usuario del token.
+ * El listado global está reservado a administradores.
  * CarritoController
  */
 @RestController
@@ -33,6 +35,32 @@ public class CarritoController {
 
     public CarritoController(CarritoService carritoService) {
         this.carritoService = carritoService;
+    }
+
+    @GetMapping("/todos")
+    public ResponseEntity<List<CarritoResponseDTO>> getAll() {
+        return ResponseEntity.ok(carritoService.getAll());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<CarritoResponseDTO> getByID(
+            @PathVariable Long id,
+            Authentication authentication) {
+        return ResponseEntity.ok(carritoService.getByID(
+                id, authentication.getName(), esAdministrador(authentication)));
+    }
+
+    @PostMapping
+    public ResponseEntity<CarritoResponseDTO> add(Authentication authentication) {
+        return ResponseEntity.ok(carritoService.add(authentication.getName()));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(
+            @PathVariable Long id,
+            Authentication authentication) {
+        carritoService.delete(id, authentication.getName(), esAdministrador(authentication));
+        return ResponseEntity.noContent().build();
     }
 
     // get http://localhost:8080/api/carrito -> carrito del usuario logueado, con subtotales y total
@@ -80,5 +108,10 @@ public class CarritoController {
     public ResponseEntity<OrdenResponseDTO> checkout(Authentication authentication) {
         OrdenResponseDTO orden = carritoService.checkout(authentication.getName());
         return new ResponseEntity<>(orden, HttpStatus.CREATED);
+    }
+
+    private boolean esAdministrador(Authentication authentication) {
+        return authentication.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
     }
 }

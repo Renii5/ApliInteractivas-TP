@@ -9,6 +9,7 @@ import com.uade.tpo.e_commerce.dto.CarritoItemDTO;
 import com.uade.tpo.e_commerce.dto.CarritoResponseDTO;
 import com.uade.tpo.e_commerce.dto.OrdenResponseDTO;
 import com.uade.tpo.e_commerce.exception.CantidadInvalidaException;
+import com.uade.tpo.e_commerce.exception.CarritoNotFoundException;
 import com.uade.tpo.e_commerce.exception.CarritoVacioException;
 import com.uade.tpo.e_commerce.exception.ProductoNoEnCarritoException;
 import com.uade.tpo.e_commerce.exception.ProductoNotFoundException;
@@ -29,8 +30,7 @@ import jakarta.transaction.Transactional;
 
 /**
  * Capa donde reside la lógica de negocio y donde se manejan las transacciones.
- * Todas las operaciones trabajan sobre el carrito del usuario autenticado:
- * el email llega desde el token, nunca como parámetro de la URL.
+ * Las operaciones individuales validan el email recibido desde el token.
  * CarritoService
  */
 @Service
@@ -61,6 +61,25 @@ public class CarritoService {
     // Devuelve el carrito del usuario con subtotales y total
     public CarritoResponseDTO getCarrito(String email) {
         return toDTO(obtenerOCrearCarrito(email));
+    }
+
+    public List<CarritoResponseDTO> getAll() {
+        return carritoRepository.findAll().stream().map(this::toDTO).toList();
+    }
+
+    public CarritoResponseDTO getByID(Long id, String email, boolean administrador) {
+        Carrito carrito = buscarCarrito(id, email, administrador);
+        return toDTO(carrito);
+    }
+
+    public CarritoResponseDTO add(String email) {
+        return toDTO(obtenerOCrearCarrito(email));
+    }
+
+    public void delete(Long id, String email, boolean administrador) {
+        Carrito carrito = buscarCarrito(id, email, administrador);
+        carritoProductosRepository.deleteByCarritoId(id);
+        carritoRepository.delete(carrito);
     }
 
     /**
@@ -166,6 +185,13 @@ public class CarritoService {
                 .orElseGet(() -> carritoRepository.save(new Carrito(
                         usuarioRepository.findByEmail(email)
                                 .orElseThrow(() -> new UsuarioNotFoundException(email)))));
+    }
+
+    private Carrito buscarCarrito(Long id, String email, boolean administrador) {
+        return (administrador
+                ? carritoRepository.findById(id)
+                : carritoRepository.findByIdAndUsuarioEmail(id, email))
+                .orElseThrow(() -> new CarritoNotFoundException(id));
     }
 
     private CarritoProductos obtenerItem(Carrito carrito, Long productoId) {
