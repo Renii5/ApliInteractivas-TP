@@ -149,8 +149,27 @@ public class ProductoService {
                 .toList();
     }
 
-    public ProductoResponseDTO getProductoById(Long id) {
-        return toDTO(obtenerProducto(id));
+    // Detalle para el comprador: el usuario logueado no ve sus propios productos
+    // (igual que en el listado), por eso se responde 404 como si no existiera
+    public ProductoResponseDTO getProductoById(Long id, String emailExcluido) {
+        Producto producto = obtenerProducto(id);
+        if (emailExcluido != null && esDelVendedor(producto, emailExcluido)) {
+            throw new ProductoNotFoundException(id);
+        }
+        return toDTO(producto);
+    }
+
+    // Detalle para el vendedor: solo puede ver así los productos que publicó
+    public ProductoResponseDTO getMiProducto(Long id, String email) {
+        Producto producto = obtenerProducto(id);
+        if (!esDelVendedor(producto, email)) {
+            throw new ProductoNotFoundException(id);
+        }
+        return toDTO(producto);
+    }
+
+    private boolean esDelVendedor(Producto producto, String email) {
+        return producto.getVendedor() != null && email.equals(producto.getVendedor().getEmail());
     }
 
     // Productos publicados por el usuario autenticado

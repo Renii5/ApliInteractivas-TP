@@ -13,6 +13,7 @@ import com.uade.tpo.e_commerce.exception.CarritoNotFoundException;
 import com.uade.tpo.e_commerce.exception.CarritoVacioException;
 import com.uade.tpo.e_commerce.exception.ProductoNoEnCarritoException;
 import com.uade.tpo.e_commerce.exception.ProductoNotFoundException;
+import com.uade.tpo.e_commerce.exception.ProductoPropioException;
 import com.uade.tpo.e_commerce.exception.StockInsuficienteException;
 import com.uade.tpo.e_commerce.exception.UsuarioNotFoundException;
 import com.uade.tpo.e_commerce.model.Carrito;
@@ -90,6 +91,7 @@ public class CarritoService {
         validarCantidad(cantidad);
         Carrito carrito = obtenerOCrearCarrito(email);
         Producto producto = obtenerProducto(productoId);
+        validarNoEsPropio(producto, email);
 
         CarritoProductos item = carritoProductosRepository
                 .findByCarritoIdAndProductoId(carrito.getId(), productoId)
@@ -109,6 +111,7 @@ public class CarritoService {
         Carrito carrito = obtenerOCrearCarrito(email);
         CarritoProductos item = obtenerItem(carrito, productoId);
 
+        validarNoEsPropio(item.getProducto(), email);
         validarStock(item.getProducto(), cantidad);
 
         item.setCantidad(cantidad);
@@ -145,8 +148,10 @@ public class CarritoService {
             throw new CarritoVacioException();
         }
 
-        // 2. Se valida el stock de todos los ítems antes de tocar nada
+        // 2. Se valida que ningún ítem sea del propio comprador (por ej. un carrito
+        // cargado antes de esta regla) y el stock de todos, antes de tocar nada
         for (CarritoProductos item : items) {
+            validarNoEsPropio(item.getProducto(), email);
             validarStock(item.getProducto(), item.getCantidad());
         }
 
@@ -202,6 +207,13 @@ public class CarritoService {
     private Producto obtenerProducto(Long productoId) {
         return productoRepository.findById(productoId)
                 .orElseThrow(() -> new ProductoNotFoundException(productoId));
+    }
+
+    // Un usuario no puede comprarse sus propios productos
+    private void validarNoEsPropio(Producto producto, String email) {
+        if (producto.getVendedor() != null && email.equals(producto.getVendedor().getEmail())) {
+            throw new ProductoPropioException(producto.getNombre());
+        }
     }
 
     private void validarCantidad(Integer cantidad) {

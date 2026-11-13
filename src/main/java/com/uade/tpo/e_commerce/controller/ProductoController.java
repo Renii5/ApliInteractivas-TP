@@ -91,10 +91,18 @@ public class ProductoController {
         return ResponseEntity.ok(productoService.getProductosDelVendedor(authentication.getName()));
     }
 
-    // get http://localhost:8080/api/productos/1 -> detalle del producto 1
+    // get http://localhost:8080/api/productos/mios/1 -> detalle del producto 1 para su vendedor
+    // (404 si el producto no es del usuario logueado)
+    @GetMapping("/mios/{id}")
+    public ResponseEntity<ProductoResponseDTO> getMiProducto(@PathVariable Long id, Authentication authentication) {
+        return ResponseEntity.ok(productoService.getMiProducto(id, authentication.getName()));
+    }
+
+    // get http://localhost:8080/api/productos/1 -> detalle del producto 1 (vista comprador)
+    // Con token, si el producto es del usuario logueado responde 404: lo ve en /mios/{id}
     @GetMapping("/{id}")
-    public ResponseEntity<ProductoResponseDTO> getProductoById(@PathVariable Long id) {
-        return ResponseEntity.ok(productoService.getProductoById(id));
+    public ResponseEntity<ProductoResponseDTO> getProductoById(@PathVariable Long id, Authentication authentication) {
+        return ResponseEntity.ok(productoService.getProductoById(id, emailLogueado(authentication)));
     }
 
     // post http://localhost:8080/api/productos -> publica un producto; el vendedor es el usuario del token

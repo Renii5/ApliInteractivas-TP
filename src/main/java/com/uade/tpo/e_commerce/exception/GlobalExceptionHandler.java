@@ -123,6 +123,11 @@ public class GlobalExceptionHandler {
         return respuesta(HttpStatus.FORBIDDEN, ex.getMessage());
     }
 
+    @ExceptionHandler(ProductoPropioException.class)
+    public ResponseEntity<ErrorResponse> manejarProductoPropio(ProductoPropioException ex) {
+        return respuesta(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
     @ExceptionHandler(CategoriaConProductosException.class)
     public ResponseEntity<ErrorResponse> manejarCategoriaConProductos(CategoriaConProductosException ex) {
         return respuesta(HttpStatus.CONFLICT, ex.getMessage());

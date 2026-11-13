@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.uade.tpo.e_commerce.dto.ProductoResponseDTO;
 import com.uade.tpo.e_commerce.exception.ProductoNotFoundException;
+import com.uade.tpo.e_commerce.exception.ProductoPropioException;
 import com.uade.tpo.e_commerce.exception.UsuarioNotFoundException;
 import com.uade.tpo.e_commerce.model.Favorito;
 import com.uade.tpo.e_commerce.model.Producto;
@@ -36,7 +37,10 @@ public class FavoritoService {
     public List<ProductoResponseDTO> getFavoritos(String email) {
         return favoritoRepository.findByUsuarioEmailOrderByProductoNombreAsc(email)
                 .stream()
-                .map(favorito -> toDTO(favorito.getProducto()))
+                .map(Favorito::getProducto)
+                // Los productos propios no se muestran en flujos de comprador
+                .filter(producto -> !esPropio(producto, email))
+                .map(this::toDTO)
                 .toList();
     }
 
@@ -45,6 +49,9 @@ public class FavoritoService {
                 .orElseThrow(() -> new UsuarioNotFoundException(email));
         Producto producto = productoRepository.findById(productoId)
                 .orElseThrow(() -> new ProductoNotFoundException(productoId));
+        if (esPropio(producto, email)) {
+            throw new ProductoPropioException(producto.getNombre());
+        }
 
         if (!favoritoRepository.existsByUsuarioIdAndProductoId(usuario.getId(), productoId)) {
             favoritoRepository.save(new Favorito(usuario, producto));
@@ -53,6 +60,10 @@ public class FavoritoService {
 
     public void eliminarFavorito(String email, Long productoId) {
         favoritoRepository.deleteByUsuarioEmailAndProductoId(email, productoId);
+    }
+
+    private boolean esPropio(Producto producto, String email) {
+        return producto.getVendedor() != null && email.equals(producto.getVendedor().getEmail());
     }
 
     private ProductoResponseDTO toDTO(Producto producto) {
