@@ -264,6 +264,91 @@ porque hay dependencias por clave foránea: `usuarios-insert.sql`, `productos-in
 `carrito-insert.sql` y `ordenes-insert.sql`. Cada archivo documenta en su encabezado el comando
 `docker exec` con el que se ejecuta contra el contenedor `mysql-open`.
 
+### 4. Backup de la base con datos reales (opcional)
+
+En [`data-testing/backup/`](data-testing/backup/) hay un backup completo de la base que usa el equipo
+(estructura y datos).
+
+| Archivo | Qué es |
+| :--- | :--- |
+| `ecommerce_db3.sql` | Dump de la base: estructura y datos de todas las tablas |
+| `restore.sh` | Carga el backup en tu base local |
+| `backup.sh` | Actualiza el backup con el estado de tu base local |
+| `uploads/` | Copia local de las imágenes subidas que genera `backup.sh`. **No se versiona** |
+
+Las imágenes de los productos están casi todas en el front (`public/productos/`) o en `placehold.co`.
+Las que se subieron al back (`image_url` en `http://localhost:8080/uploads/...`) no están en el repo:
+esos productos se ven sin imagen, salvo que alguien te pase los archivos y los pongas en `uploads/`
+o en `data-testing/backup/uploads/` antes de correr `restore.sh`.
+
+**Antes de correr cualquiera de los dos scripts**, el contenedor `mysql-open` tiene que estar corriendo.
+Si está apagado, se prende con:
+
+```bash
+docker start mysql-open
+```
+
+#### Cargar el backup en tu base
+
+Con el back apagado (si Hibernate está conectado mientras se recrean las tablas puede dar errores),
+desde la raíz del back:
+
+```bash
+bash data-testing/backup/restore.sh
+```
+
+> **Atención:** todo lo que tengas cargado en tu base se pierde. Por cada tabla del backup
+> (`usuarios`, `productos`, `categorias`, `carrito`, `carrito_productos`, `favoritos`, `ordenes`,
+> `orden_items`) se borra la tabla y se vuelve a crear con los datos del backup: no se mezclan.
+> Las tablas que no estén en el backup y las otras bases de MySQL no se tocan.
+> Si querés guardar lo que tenés antes, corré primero `backup.sh` (y descartá el cambio con
+> `git restore data-testing/backup/` si no lo querés commitear).
+
+Si existe `data-testing/backup/uploads/`, sus imágenes se copian a `uploads/`: si ya tenés una con el
+mismo nombre se pisa, y las demás quedan como están. Si no existe, se omite ese paso.
+
+Al terminar, el script imprime `Base ecommerce_db3 restaurada` y después `Imágenes copiadas a uploads/`
+o `No hay imágenes en data-testing/backup/uploads/: se omite la copia`. Después levantá el back normalmente.
+
+#### Actualizar el backup
+
+Para guardar el estado de tu base local en el repo, desde la raíz del back:
+
+```bash
+bash data-testing/backup/backup.sh
+```
+
+Reemplaza `ecommerce_db3.sql` y la carpeta `data-testing/backup/uploads/` por lo que tengas ahora
+(si borraste una imagen de `uploads/`, también desaparece del backup). Al terminar imprime
+`Backup generado en data-testing/backup/ ...`. Commiteá solo `ecommerce_db3.sql`: la carpeta
+`data-testing/backup/uploads/` no se sube.
+
+El dump guarda una fila por línea y no incluye la fecha, así que antes de commitear podés ver
+exactamente qué datos cambiaron (y si no cambió nada, git no muestra diferencias):
+
+```bash
+git diff data-testing/backup/
+```
+
+> El dump incluye la tabla `usuarios` (emails y contraseñas hasheadas con BCrypt).
+> No subas al backup usuarios con contraseñas que uses en otros servicios.
+
+#### Cómo correr los scripts en cada sistema
+
+- **Windows:** desde **Git Bash**. No uses `bash` desde PowerShell: según la instalación puede abrir el
+  bash de WSL, que no tiene las mismas rutas y el script falla. Para correrlos desde PowerShell, llamá
+  directo al bash de Git:
+
+  ```powershell
+  & "C:\Program Files\Git\bin\bash.exe" data-testing/backup/restore.sh
+  ```
+
+- **macOS / Linux:** desde la terminal, con los mismos comandos `bash data-testing/backup/...`.
+
+Los scripts ubican sus rutas a partir de dónde están, así que también funcionan si los corrés desde otra
+carpeta. Si algo falla, el script se corta en ese paso y el error queda en la terminal; el detalle de
+cada paso está comentado en los propios scripts.
+
 ---
 
 ## Configuración
