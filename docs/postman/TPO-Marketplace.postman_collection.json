@@ -613,7 +613,7 @@
 						},
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"nombre\": \"Fuente 750W\",\n  \"descripcion\": \"80 Plus Gold, modular\",\n  \"image_url\": \"https://placehold.co/600x400?text=Fuente+750W\",\n  \"precio\": 110000,\n  \"stock\": 6,\n  \"categoriaId\": 5\n}",
+							"raw": "{\n  \"nombre\": \"Fuente 750W\",\n  \"descripcion\": \"80 Plus Gold, modular\",\n  \"imagenes\": [\"http://localhost:8080/images/corsair-vengeance-ddr5-16gb-5600mhz.jpg\", \"http://localhost:8080/images/corsair-vengeance-ddr5-16gb-5600mhz.jpg\"],\n  \"precio\": 110000,\n  \"stock\": 6,\n  \"categoriaId\": 5\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -709,7 +709,7 @@
 						},
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"nombre\": \"Mouse inalámbrico Pro\",\n  \"descripcion\": \"6 botones, 26000 DPI\",\n  \"image_url\": \"https://placehold.co/600x400?text=Mouse+Pro\",\n  \"precio\": 25000,\n  \"stock\": 10,\n  \"categoriaId\": 5\n}",
+							"raw": "{\n  \"nombre\": \"Mouse inalámbrico Pro\",\n  \"descripcion\": \"6 botones, 26000 DPI\",\n  \"imagenes\": [\"http://localhost:8080/images/logitech-g502-x-plus-mouse-inalambrico.jpg\"],\n  \"precio\": 25000,\n  \"stock\": 10,\n  \"categoriaId\": 5\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -776,7 +776,7 @@
 						},
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"nombre\": \"RTX 4070\",\n  \"descripcion\": \"GPU\",\n  \"precio\": 1,\n  \"stock\": 5,\n  \"categoriaId\": 1\n}",
+							"raw": "{\n  \"nombre\": \"RTX 4070\",\n  \"descripcion\": \"GPU\",\n  \"imagenes\": [\"http://localhost:8080/images/nvidia-geforce-rtx-4070-super-asus-dual-12gb.jpg\"],\n  \"precio\": 1,\n  \"stock\": 5,\n  \"categoriaId\": 1\n}",
 							"options": {
 								"raw": {
 									"language": "json"

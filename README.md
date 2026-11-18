@@ -71,7 +71,8 @@ Las versiones renderizadas en SVG están en [`docs/imgDiagrams/`](docs/imgDiagra
 | :--- | :--- | :--- | :--- |
 | `Usuario` | `usuarios` | id, nombre, apellido, email (único), password (BCrypt), role | Implementa `UserDetails` de Spring Security |
 | `Categoria` | `categorias` | id, nombre | — |
-| `Producto` | `productos` | id, nombre, description, image_url, precio, stock | `@ManyToOne` → `Categoria` |
+| `Producto` | `productos` | id, nombre, description, precio, stock | `@ManyToOne` → `Categoria`, `@ManyToOne` → `Usuario` (vendedor), `@OneToMany` → `ProductoImagen` (cascade, orphanRemoval) |
+| `ProductoImagen` | `producto_imagenes` | id, url, orden | `@ManyToOne` → `Producto`. La de `orden` 0 es la imagen principal |
 | `Carrito` | `carrito` | id | `@OneToOne` → `Usuario` (un carrito por usuario) |
 | `CarritoProductos` | `carrito_productos` | id, cantidad | `@ManyToOne` → `Carrito`, `@ManyToOne` → `Producto`; único (carrito, producto) |
 | `Orden` | `ordenes` | id, fecha, total | `@ManyToOne` → `Usuario` (comprador), `@OneToMany` → `OrdenItem` (cascade) |
@@ -84,6 +85,11 @@ problema N+1.
 
 `OrdenItem` guarda el precio del producto al momento de la compra, así un cambio de precio
 posterior no altera las órdenes ya generadas.
+
+Un producto tiene **una o más fotos** (entre 1 y 6) en la tabla `producto_imagenes`, relación 1:N con
+`Producto`. Con `cascade` y `orphanRemoval`, las imágenes se guardan y se borran junto con el producto,
+y al modificarlo las que ya no vienen en la lista se eliminan. `@BatchSize` hace que el listado del
+catálogo traiga las imágenes de toda la página en una sola consulta.
 
 ---
 
@@ -132,11 +138,18 @@ Body de login:
 | `PUT` | `/api/productos/{id}` | Actualiza un producto. | Autenticado | `200` / `400` / `404` |
 | `DELETE` | `/api/productos/{id}` | Elimina un producto. | Autenticado | `204` / `404` |
 
-Body de alta/modificación:
+Body de alta/modificación (`imagenes`: entre 1 y 6 URLs, en orden; la primera es la principal):
 
 ```json
-{ "nombre": "RTX 4070", "descripcion": "GPU 12GB GDDR6X", "precio": 850000.0, "categoriaId": 1 }
+{
+  "nombre": "RTX 4070", "descripcion": "GPU 12GB GDDR6X", "precio": 850000.0, "stock": 10, "categoriaId": 1,
+  "imagenes": ["http://localhost:8080/images/<uuid>.jpg", "http://localhost:8080/images/<uuid>.jpg"]
+}
 ```
+
+Para publicar con archivos, primero se sube cada uno a `POST /api/productos/imagen` y se mandan las URLs devueltas.
+La respuesta (`ProductoResponseDTO`) trae `image_url` (la imagen principal) e `imagenes` (todas, en orden).
+Sin imágenes o con más de 6 responde `400`.
 
 ### Carrito — `/api/carrito`
 
@@ -284,7 +297,7 @@ En [`data-testing/backup/`](data-testing/backup/) hay un backup completo de la b
 
 Las imágenes de los productos están en la carpeta [`images/`](images/) de la raíz del back, que **se
 versiona**: ahí están las del catálogo inicial y las que suben los vendedores (`POST /api/productos/imagen`).
-El back las sirve en `http://localhost:8080/images/<archivo>`, que es lo que guarda `image_url`.
+El back las sirve en `http://localhost:8080/images/<archivo>`, que es lo que guarda `producto_imagenes.url`.
 Algunos productos usan una URL externa (`placehold.co`), que también es válida.
 Si subís imágenes probando la app, aparecen en `git status`: commiteá solo las que correspondan.
 
