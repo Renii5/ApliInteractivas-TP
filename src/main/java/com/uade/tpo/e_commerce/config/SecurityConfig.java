@@ -153,8 +153,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/api/productos/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/productos/**").authenticated()
 
-                        // Las imágenes subidas se muestran en el catálogo, que es público
-                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
+                        // Las imágenes de productos se muestran en el catálogo, que es público
+                        .requestMatchers(HttpMethod.GET, "/images/**").permitAll()
 
                         // Ver categorías es público
                         .requestMatchers(HttpMethod.GET, "/api/categorias/**").permitAll()

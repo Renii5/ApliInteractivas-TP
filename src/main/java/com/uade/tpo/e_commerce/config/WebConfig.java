@@ -7,24 +7,24 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-// Sirve las imágenes subidas por los vendedores (ImagenService) como archivos estáticos:
-// get http://localhost:8080/uploads/<archivo> -> devuelve la imagen guardada en app.uploads.dir
+// Sirve las imágenes de productos (las del catálogo y las que suben los vendedores) como archivos estáticos:
+// get http://localhost:8080/images/<archivo> -> devuelve la imagen guardada en app.images.dir
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    private final String directorioUploads;
+    private final String directorioImagenes;
 
-    public WebConfig(@Value("${app.uploads.dir}") String directorioUploads) {
-        this.directorioUploads = directorioUploads;
+    public WebConfig(@Value("${app.images.dir}") String directorioImagenes) {
+        this.directorioImagenes = directorioImagenes;
     }
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        String ubicacion = Paths.get(directorioUploads).toAbsolutePath().normalize().toUri().toString();
+        String ubicacion = Paths.get(directorioImagenes).toAbsolutePath().normalize().toUri().toString();
         // Spring necesita la "/" final para tratar la ubicación como carpeta
         if (!ubicacion.endsWith("/")) {
             ubicacion += "/";
         }
-        registry.addResourceHandler("/uploads/**").addResourceLocations(ubicacion);
+        registry.addResourceHandler("/images/**").addResourceLocations(ubicacion);
     }
 }

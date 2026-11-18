@@ -34,6 +34,3 @@ build/
 
 ### Env ###
 .env
-
-### Imágenes subidas por los usuarios (app.uploads.dir) ###
-/uploads/

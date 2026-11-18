@@ -34,12 +34,12 @@ public class ImagenService {
     private final Path directorio;
     private final String urlPublica;
 
-    public ImagenService(@Value("${app.uploads.dir}") String directorio,
+    public ImagenService(@Value("${app.images.dir}") String directorio,
             @Value("${app.public-url}") String urlPublica) throws IOException {
         this.directorio = Paths.get(directorio).toAbsolutePath().normalize();
         // Sin "/" final para no generar URLs con doble barra
         this.urlPublica = urlPublica.replaceAll("/+$", "");
-        // La carpeta no se versiona: se crea al arrancar si no existe
+        // La carpeta se versiona con las imágenes del catálogo; igual se crea al arrancar si no existe
         Files.createDirectories(this.directorio);
     }
 
@@ -63,7 +63,7 @@ public class ImagenService {
         } catch (IOException e) {
             throw new UncheckedIOException("No se pudo guardar la imagen", e);
         }
-        return urlPublica + "/uploads/" + nombre;
+        return urlPublica + "/images/" + nombre;
     }
 
     // Compara los primeros bytes del archivo con la firma de cada formato
