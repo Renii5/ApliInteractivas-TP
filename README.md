@@ -126,7 +126,7 @@ Body de login:
 | :--- | :--- | :--- | :--- | :--- |
 | `GET` | `/api/productos` | Lista todos los productos como `ProductoResponseDTO`. | Público | `200` |
 | `POST` | `/api/productos` | Crea un producto asociado a una categoría existente. | Autenticado | `201` / `400` precio negativo / `404` categoría inexistente |
-| `POST` | `/api/productos/imagen` | Sube una imagen (`multipart/form-data`, campo `imagen`, JPG/PNG/WEBP hasta 5 MB) y devuelve `{ "image_url": "http://localhost:8080/uploads/<uuid>.jpg" }` para usar en el alta o modificación. | Autenticado | `201` / `400` formato inválido / `413` demasiado grande |
+| `POST` | `/api/productos/imagen` | Sube una imagen (`multipart/form-data`, campo `imagen`, JPG/PNG/WEBP hasta 5 MB) y devuelve `{ "image_url": "http://localhost:8080/images/<uuid>.jpg" }` para usar en el alta o modificación. | Autenticado | `201` / `400` formato inválido / `413` demasiado grande |
 | `PUT` | `/api/productos/{id}` | Actualiza un producto. | Autenticado | `200` / `400` / `404` |
 | `DELETE` | `/api/productos/{id}` | Elimina un producto. | Autenticado | `204` / `404` |
 
@@ -185,7 +185,7 @@ sin stock) se hace rollback y no queda stock descontado ni una orden a medio cre
 
 ---
 
-## Seguridad (plus opcional)
+## Seguridad
 
 La autenticación es *stateless* y se resuelve con JWT:
 
@@ -203,7 +203,7 @@ Reglas de acceso definidas en `SecurityConfig`:
 
 | Regla | Endpoints |
 | :--- | :--- |
-| Público | `POST /api/usuarios/register`, `POST /api/usuarios/login`, `GET /api/productos/**`, `/api/categorias/**`, `GET /uploads/**` (imágenes subidas) |
+| Público | `POST /api/usuarios/register`, `POST /api/usuarios/login`, `GET /api/productos/**`, `/api/categorias/**`, `GET /images/**` (imágenes de productos) |
 | Requiere autenticación | `POST`, `PUT` y `DELETE` sobre `/api/productos/**`, `/api/carrito/**`, `/api/ventas`, y cualquier otra ruta |
 | Requiere rol `ADMIN` | `/api/admin/**` |
 
@@ -257,29 +257,22 @@ de **H2 en memoria**, útil para correr la app sin instalar MySQL.
 
 La API queda disponible en `http://localhost:8080`.
 
-### 3. Cargar datos de prueba (opcional)
-
-En [`data-testing/sql/`](data-testing/sql/) hay scripts de poblado. Deben correrse en este orden,
-porque hay dependencias por clave foránea: `usuarios-insert.sql`, `productos-insert.sql`,
-`carrito-insert.sql` y `ordenes-insert.sql`. Cada archivo documenta en su encabezado el comando
-`docker exec` con el que se ejecuta contra el contenedor `mysql-open`.
-
-### 4. Backup de la base con datos reales (opcional)
+### 3. Cargar los datos (backup de la base)
 
 En [`data-testing/backup/`](data-testing/backup/) hay un backup completo de la base que usa el equipo
-(estructura y datos).
+(estructura y datos). Es la única fuente de datos de prueba del proyecto.
 
 | Archivo | Qué es |
 | :--- | :--- |
 | `ecommerce_db3.sql` | Dump de la base: estructura y datos de todas las tablas |
 | `restore.sh` | Carga el backup en tu base local |
 | `backup.sh` | Actualiza el backup con el estado de tu base local |
-| `uploads/` | Copia local de las imágenes subidas que genera `backup.sh`. **No se versiona** |
 
-Las imágenes de los productos están casi todas en el front (`public/productos/`) o en `placehold.co`.
-Las que se subieron al back (`image_url` en `http://localhost:8080/uploads/...`) no están en el repo:
-esos productos se ven sin imagen, salvo que alguien te pase los archivos y los pongas en `uploads/`
-o en `data-testing/backup/uploads/` antes de correr `restore.sh`.
+Las imágenes de los productos están en la carpeta [`images/`](images/) de la raíz del back, que **se
+versiona**: ahí están las del catálogo inicial y las que suben los vendedores (`POST /api/productos/imagen`).
+El back las sirve en `http://localhost:8080/images/<archivo>`, que es lo que guarda `image_url`.
+Algunos productos usan una URL externa (`placehold.co`), que también es válida.
+Si subís imágenes probando la app, aparecen en `git status`: commiteá solo las que correspondan.
 
 **Antes de correr cualquiera de los dos scripts**, el contenedor `mysql-open` tiene que estar corriendo.
 Si está apagado, se prende con:
@@ -304,11 +297,7 @@ bash data-testing/backup/restore.sh
 > Si querés guardar lo que tenés antes, corré primero `backup.sh` (y descartá el cambio con
 > `git restore data-testing/backup/` si no lo querés commitear).
 
-Si existe `data-testing/backup/uploads/`, sus imágenes se copian a `uploads/`: si ya tenés una con el
-mismo nombre se pisa, y las demás quedan como están. Si no existe, se omite ese paso.
-
-Al terminar, el script imprime `Base ecommerce_db3 restaurada` y después `Imágenes copiadas a uploads/`
-o `No hay imágenes en data-testing/backup/uploads/: se omite la copia`. Después levantá el back normalmente.
+Al terminar, el script imprime `Base ecommerce_db3 restaurada`. Después levantá el back normalmente.
 
 #### Actualizar el backup
 
@@ -318,10 +307,9 @@ Para guardar el estado de tu base local en el repo, desde la raíz del back:
 bash data-testing/backup/backup.sh
 ```
 
-Reemplaza `ecommerce_db3.sql` y la carpeta `data-testing/backup/uploads/` por lo que tengas ahora
-(si borraste una imagen de `uploads/`, también desaparece del backup). Al terminar imprime
-`Backup generado en data-testing/backup/ ...`. Commiteá solo `ecommerce_db3.sql`: la carpeta
-`data-testing/backup/uploads/` no se sube.
+Reemplaza `ecommerce_db3.sql` por lo que tengas ahora y al terminar imprime
+`Backup generado en data-testing/backup/ecommerce_db3.sql`. Si agregaste productos con imágenes subidas,
+commiteá también esas imágenes de `images/`, para que el backup no quede apuntando a archivos que no están.
 
 El dump guarda una fila por línea y no incluye la fecha, así que antes de commitear podés ver
 exactamente qué datos cambiaron (y si no cambió nada, git no muestra diferencias):
@@ -361,7 +349,7 @@ Parámetros relevantes de `src/main/resources/application.properties`:
 | `spring.datasource.username` | `root` |
 | `spring.jpa.hibernate.ddl-auto` | `update` |
 | `jwt.expiration` | `86400000` (24 hs) |
-| `app.uploads.dir` | `uploads` (carpeta de imágenes subidas; se crea al arrancar y no se versiona) |
+| `app.images.dir` | `images` (carpeta de imágenes de productos; se versiona y se crea al arrancar si no existe) |
 | `app.public-url` | `http://localhost:8080` (base de la `image_url` que devuelve la subida) |
 | `spring.servlet.multipart.max-file-size` | `5MB` |
 

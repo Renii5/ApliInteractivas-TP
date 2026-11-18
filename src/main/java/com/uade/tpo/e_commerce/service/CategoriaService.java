@@ -28,7 +28,8 @@ public class CategoriaService {
 	}
 
 	public List<CategoriaResponseDTO> listarCategorias() {
-		return categoriaRepository.findAll().stream().map(this::toDTO).toList();
+		// Ordenadas alfabéticamente, como se muestran en la home
+		return categoriaRepository.findAllByOrderByNombreAsc().stream().map(this::toDTO).toList();
 	}
 
 	public CategoriaResponseDTO buscarCategoria(Long id) {
