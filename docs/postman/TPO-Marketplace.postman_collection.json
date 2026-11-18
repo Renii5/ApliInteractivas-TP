@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "94e356b7-c95c-4bdb-a42f-8ab8fddf3719",
 		"name": "TPO Marketplace - Flujos",
-		"description": "Seleccionar el environment TPO (tokenAdmin, tokenJuan, tokenLucia, tokenMaria). Correr las carpetas en orden: cada flujo deja la base lista para el siguiente.",
+		"description": "Seleccionar el environment TPO (tokenAdmin, tokenJuan, tokenLucia, tokenMaria). Correr las carpetas en orden: cada flujo deja la base lista para el siguiente. El login devuelve el JWT en la cookie HttpOnly \"sesion\" (no en el body): Postman la guarda sola, y para cargar las variables de token se copia su valor desde la pestaña Cookies de la respuesta. Los requests con Authorization: Bearer usan ese token aunque haya cookie.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -89,7 +89,7 @@
 					"response": []
 				},
 				{
-					"name": "Login → 200 con token",
+					"name": "Login → 200 con cookie de sesión",
 					"request": {
 						"method": "POST",
 						"header": [

@@ -96,7 +96,9 @@ Base URL: `http://localhost:8080`
 | Método | Endpoint | Descripción | Acceso | Respuesta |
 | :--- | :--- | :--- | :--- | :--- |
 | `POST` | `/api/usuarios/register` | Registra un usuario nuevo (rol `USER` por defecto) y devuelve sus datos (`UsuarioResponseDTO`, sin contraseña). | Público | `201` / `409` si el email o el nombre de usuario ya existen |
-| `POST` | `/api/usuarios/login` | Valida credenciales y devuelve el JWT. | Público | `200` con token / `401` / `404` |
+| `POST` | `/api/usuarios/login` | Valida credenciales. El JWT va en la cookie `HttpOnly` `sesion` (header `Set-Cookie`) y el body trae los datos del usuario (`UsuarioResponseDTO`). | Público | `200` / `401` / `404` |
+| `POST` | `/api/usuarios/logout` | Borra la cookie de sesión (la devuelve vacía con `Max-Age=0`). | Público | `204` |
+| `GET` | `/api/usuarios/me` | Datos del usuario logueado. El front lo usa al cargar la app para saber si hay sesión. | Autenticado | `200` / `401` |
 
 Body de registro:
 
@@ -191,13 +193,25 @@ La autenticación es *stateless* y se resuelve con JWT:
 
 1. El usuario se registra en `/api/usuarios/register`. La contraseña se guarda hasheada con **BCrypt**, nunca en texto plano.
 2. En `/api/usuarios/login`, el `AuthenticationManager` valida las credenciales y `JwtUtil` firma un token con el email y los roles del usuario.
-3. En cada request posterior, `JwtFilter` (registrado antes de `UsernamePasswordAuthenticationFilter`) lee el header `Authorization`, valida la firma y carga la autenticación en el `SecurityContext`.
+3. El token **no va en el body**: se manda en el header `Set-Cookie` como cookie `sesion`, que el navegador guarda y reenvía sola en cada request (el front usa `fetch` con `credentials: 'include'`):
 
-Header a enviar en los endpoints protegidos:
+   ```text
+   Set-Cookie: sesion=<jwt>; Path=/; Max-Age=86400; HttpOnly; SameSite=Strict
+   ```
+
+   - `HttpOnly`: JavaScript no la puede leer (`document.cookie`), así un ataque **XSS** no puede robar el token. Por eso el front no lo guarda en `localStorage`.
+   - `SameSite=Strict`: el navegador no la envía en requests iniciados desde otro sitio, lo que protege de **CSRF**. El front (`localhost:5173`) y el back (`localhost:8080`) son el mismo sitio: el puerto no cuenta.
+   - `Secure` está desactivado porque en desarrollo se usa http; en producción, con HTTPS, va activado.
+4. En cada request posterior, `JwtFilter` (registrado antes de `UsernamePasswordAuthenticationFilter`) toma el token, valida la firma y carga la autenticación en el `SecurityContext`.
+5. `/api/usuarios/logout` borra la cookie (JavaScript no puede borrar una cookie `HttpOnly`).
+
+Para probar con **Postman** u otro cliente, también se acepta el header. Si viene, tiene prioridad sobre la cookie; el front nunca lo manda:
 
 ```text
 Authorization: Bearer <token>
 ```
+
+Postman guarda la cookie del último login y la manda en los requests siguientes. Para probar como otro usuario se usa el header con su token, que se copia de la pestaña *Cookies* de la respuesta del login.
 
 Reglas de acceso definidas en `SecurityConfig`:
 
