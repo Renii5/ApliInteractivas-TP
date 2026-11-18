@@ -1,11 +1,13 @@
 package com.uade.tpo.e_commerce.security;
 
+import java.time.Duration;
 import java.util.Date;
 import java.util.Set;
 
 import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
@@ -38,6 +40,45 @@ public class JwtUtil {
      */
     @Value("${jwt.expiration}")
     private Long expiration;
+
+    /**
+     * Nombre de la cookie donde viaja el JWT. No se llama "token" a propósito:
+     * un nombre obvio facilita los ataques que buscan patrones predecibles.
+     */
+    public static final String NOMBRE_COOKIE = "sesion";
+
+    /**
+     * Arma la cookie con el JWT que se manda al hacer login (header Set-Cookie).
+     * - httpOnly(true): JavaScript no la puede leer (document.cookie), así un ataque XSS no puede robar el token.
+     * - sameSite("Strict"): el navegador no la envía en requests iniciados desde otro sitio (protege de CSRF).
+     *   El front (localhost:5173) y el back (localhost:8080) son el mismo sitio: el puerto no cuenta.
+     * - secure(false): permite enviarla por http en desarrollo. En producción va true, con HTTPS.
+     * - path("/"): se envía en todas las rutas del back.
+     * - maxAge: dura lo mismo que el token (jwt.expiration).
+     */
+    public ResponseCookie crearCookie(String token) {
+        return ResponseCookie.from(NOMBRE_COOKIE, token)
+                .httpOnly(true)
+                .secure(false)
+                .sameSite("Strict")
+                .path("/")
+                .maxAge(Duration.ofMillis(expiration))
+                .build();
+    }
+
+    /**
+     * Cookie vacía con maxAge 0: al recibirla, el navegador borra la cookie de sesión (logout).
+     * Tiene que tener el mismo nombre y path que la original.
+     */
+    public ResponseCookie borrarCookie() {
+        return ResponseCookie.from(NOMBRE_COOKIE, "")
+                .httpOnly(true)
+                .secure(false)
+                .sameSite("Strict")
+                .path("/")
+                .maxAge(0)
+                .build();
+    }
 
     /**
      * Este método genera una clave secreta para firmar el token JWT.

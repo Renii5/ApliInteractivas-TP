@@ -10,7 +10,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.uade.tpo.e_commerce.dto.LoginRequest;
-import com.uade.tpo.e_commerce.dto.LoginResponseDTO;
 import com.uade.tpo.e_commerce.dto.RegisterRequest;
 import com.uade.tpo.e_commerce.dto.UsuarioResponseDTO;
 import com.uade.tpo.e_commerce.exception.ContrasenaIncorrectaException;
@@ -161,17 +160,18 @@ public class AuthenticationService {
      * - Se utiliza Spring Security AuthenticationManager para validar credenciales
      * - Las contraseñas se comparan de manera segura usando BCrypt
      * - El token JWT se genera con email y roles del usuario
-     * - El cliente debe incluir este token en el header Authorization de futuras solicitudes
-     * 
+     * - El controller manda el token al cliente en una cookie HttpOnly (no en el body),
+     *   y el navegador la reenvía sola en las solicitudes siguientes
+     *
      * @param request objeto LoginRequest que contiene:
      *                - email: identificador único del usuario
      *                - password: contraseña en texto plano (será encriptada internamente para validación)
-     * @return token JWT (JSON Web Token) que el cliente debe usar para autenticarse en solicitudes futuras
+     * @return token JWT (JSON Web Token) que UsuarioController pone en la cookie de sesión
      * @throws UsernameNotFoundException si el usuario (email) no existe en la base de datos
      * @throws BadCredentialsException si la contraseña proporcionada es incorrecta
      * @throws NoSuchElementException si no se encuentra el usuario después de la autenticación exitosa
      */
-    public LoginResponseDTO authenticate(LoginRequest request) {
+    public String authenticate(LoginRequest request) {
 
         if (usuarioRepository.findByEmail(request.getEmail()).isEmpty()) {
             throw new UsuarioNotFoundException(request.getEmail());
@@ -247,7 +247,7 @@ public class AuthenticationService {
         // - No se requiere consultar BD en cada solicitud para validarlo (validación local)
         // - Contiene información encriptada sobre el usuario (email, roles)
         // - Tiene expiration time (vencimiento después de cierto tiempo)
-        // - El cliente lo debe incluir en el header Authorization para futuras solicitudes
+        // - Viaja en una cookie HttpOnly que el navegador envía sola en las solicitudes siguientes
         //
         // jwtUtil.generateToken(email, roles):
         // - Crea un token JWT con el email y los roles del usuario
@@ -255,7 +255,6 @@ public class AuthenticationService {
         // - El servidor podrá verificar este token en futuras solicitudes sin consultar BD
         // - Solo tokens con firma válida serán aceptados (previene manipulación)
         
-        String token = jwtUtil.generateToken(user.getEmail(), roles);
-        return new LoginResponseDTO(token, user.getEmail(), user.getRole().name());
+        return jwtUtil.generateToken(user.getEmail(), roles);
     }
 }

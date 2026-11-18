@@ -116,6 +116,8 @@ public class SecurityConfig {
         // return http.build();
 
         http
+                // CSRF deshabilitado: el JWT viaja en una cookie con SameSite=Strict (ver JwtUtil.crearCookie),
+                // así el navegador no la envía en requests que vienen de otro sitio, que es lo que explota un ataque CSRF
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -142,6 +144,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/usuarios/register").permitAll()
                         // El login es público porque genera el JWT
                         .requestMatchers(HttpMethod.POST, "/api/usuarios/login").permitAll()
+                        // El logout es público: tiene que poder borrar la cookie aunque el token ya haya vencido
+                        .requestMatchers(HttpMethod.POST, "/api/usuarios/logout").permitAll()
                         // Este endpoint usa la identidad del token, por eso requiere autenticación.
                         .requestMatchers(HttpMethod.GET, "/api/productos/mios", "/api/productos/mios/**").authenticated()
                         // El catálogo y el detalle de productos son públicos.
