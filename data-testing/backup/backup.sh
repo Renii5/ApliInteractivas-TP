@@ -2,7 +2,9 @@
 # ============================================================
 # Genera el backup de la base local en data-testing/backup/:
 #   - ecommerce_db3.sql : dump completo (estructura + datos)
-#   - uploads/          : copia de las imágenes subidas (uploads/ no se versiona)
+#
+# Las imágenes no se copian: están en images/ (raíz del back), que se versiona.
+# Si se subieron imágenes nuevas, hay que commitearlas junto con el dump.
 #
 # Requiere el contenedor "mysql-open" corriendo.
 # Uso (desde la raíz del back, en Git Bash / macOS / Linux):
@@ -16,7 +18,6 @@ export MSYS_NO_PATHCONV=1
 CONTAINER="mysql-open"
 DB="ecommerce_db3"
 DIR="$(cd "$(dirname "$0")" && pwd)"
-ROOT="$(cd "$DIR/../.." && pwd)"
 
 # Ruta del backup para docker cp (en Git Bash hay que pasarla en formato Windows)
 HOST_DIR="$DIR"
@@ -32,12 +33,4 @@ docker exec "$CONTAINER" mysqldump -uroot --databases "$DB" \
 docker cp "$CONTAINER:/tmp/backup.sql" "$HOST_DIR/$DB.sql"
 docker exec "$CONTAINER" rm /tmp/backup.sql
 
-# Imágenes subidas: se reemplaza la copia entera para que refleje uploads/ tal como está
-rm -rf "$DIR/uploads"
-mkdir -p "$DIR/uploads"
-if [ -d "$ROOT/uploads" ]; then
-  cp -r "$ROOT/uploads/." "$DIR/uploads/"
-fi
-touch "$DIR/uploads/.gitkeep"
-
-echo "Backup generado en data-testing/backup/ ($DB.sql + uploads/)"
+echo "Backup generado en data-testing/backup/$DB.sql"
