@@ -1,6 +1,6 @@
 package com.uade.tpo.e_commerce.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,8 +14,9 @@ import lombok.NoArgsConstructor;
 public class ProductoRequestDTO {
     private String nombre;
     private String descripcion;
-    @JsonProperty("image_url")
-    private String imageUrl;
+    // URLs de las fotos, en orden (la primera es la principal). Se obtienen subiendo cada archivo
+    // a POST /api/productos/imagen, o pueden ser URLs externas. Entre 1 y 6.
+    private List<String> imagenes;
     private double precio;
     private Integer stock;
     private Long categoriaId;

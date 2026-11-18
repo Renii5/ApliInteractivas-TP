@@ -10,6 +10,7 @@ import com.uade.tpo.e_commerce.exception.ProductoPropioException;
 import com.uade.tpo.e_commerce.exception.UsuarioNotFoundException;
 import com.uade.tpo.e_commerce.model.Favorito;
 import com.uade.tpo.e_commerce.model.Producto;
+import com.uade.tpo.e_commerce.model.ProductoImagen;
 import com.uade.tpo.e_commerce.model.Usuario;
 import com.uade.tpo.e_commerce.repository.FavoritoRepository;
 import com.uade.tpo.e_commerce.repository.ProductoRepository;
@@ -71,7 +72,8 @@ public class FavoritoService {
                 producto.getId(),
                 producto.getNombre(),
                 producto.getDescription(),
-                producto.getImageUrl(),
+                producto.getImagenPrincipal(),
+                producto.getImagenes().stream().map(ProductoImagen::getUrl).toList(),
                 producto.getPrecio(),
                 producto.getStock(),
                 producto.getStock() > 0,

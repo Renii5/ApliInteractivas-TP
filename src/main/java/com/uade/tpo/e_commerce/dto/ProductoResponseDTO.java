@@ -1,5 +1,7 @@
 package com.uade.tpo.e_commerce.dto;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
@@ -13,8 +15,11 @@ public class ProductoResponseDTO {
     private Long id;
     private String nombre;
     private String descripcion;
+    // Imagen principal (la primera de imagenes): la usan las tarjetas, el carrito y el checkout
     @JsonProperty("image_url")
     private String imageUrl;
+    // Todas las fotos del producto, en orden: las usa la galería del detalle
+    private List<String> imagenes;
     private double precio;
     private Integer stock;
     // stock > 0: la consigna pide que se vea cuando un producto no tiene stock

@@ -58,7 +58,7 @@ public class OrdenService {
                 .map(item -> new OrdenItemDTO(
                         item.getProducto().getId(),
                         item.getProducto().getNombre(),
-                        item.getProducto().getImageUrl(),
+                        item.getProducto().getImagenPrincipal(),
                         item.getPrecioUnitario(),
                         item.getCantidad(),
                         item.getSubtotal()))

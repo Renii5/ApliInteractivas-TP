@@ -16,6 +16,7 @@ import com.uade.tpo.e_commerce.dto.PaginaProductosDTO;
 import com.uade.tpo.e_commerce.dto.ProductoRequestDTO;
 import com.uade.tpo.e_commerce.dto.ProductoResponseDTO;
 import com.uade.tpo.e_commerce.exception.CategoriaNotFoundException;
+import com.uade.tpo.e_commerce.exception.ImagenInvalidaException;
 import com.uade.tpo.e_commerce.exception.PrecioNegativoException;
 import com.uade.tpo.e_commerce.exception.ProductoConVentasException;
 import com.uade.tpo.e_commerce.exception.ProductoNoPropioException;
@@ -24,6 +25,7 @@ import com.uade.tpo.e_commerce.exception.StockInvalidoException;
 import com.uade.tpo.e_commerce.exception.UsuarioNotFoundException;
 import com.uade.tpo.e_commerce.model.Categoria;
 import com.uade.tpo.e_commerce.model.Producto;
+import com.uade.tpo.e_commerce.model.ProductoImagen;
 import com.uade.tpo.e_commerce.model.Role;
 import com.uade.tpo.e_commerce.model.Usuario;
 import com.uade.tpo.e_commerce.repository.CarritoProductosRepository;
@@ -67,6 +69,8 @@ public class ProductoService {
 
     private static final int TAMANIO_PAGINA_DEFAULT = 9;
     private static final int TAMANIO_PAGINA_MAXIMO = 100;
+    // Cantidad máxima de fotos por publicación
+    private static final int MAXIMO_IMAGENES = 6;
 
     // Listado con filtros combinables (AND entre filtros, OR dentro de categorías/vendedores),
     // orden y paginación (página base 1). Todos los parámetros son opcionales.
@@ -183,11 +187,12 @@ public class ProductoService {
     public ProductoResponseDTO createProducto(ProductoRequestDTO productoRequest, String email) {
         validarPrecio(productoRequest.getPrecio());
         validarStock(productoRequest.getStock());
+        validarImagenes(productoRequest.getImagenes());
 
         Producto producto = new Producto();
         producto.setNombre(productoRequest.getNombre());
         producto.setDescription(productoRequest.getDescripcion());
-        producto.setImageUrl(productoRequest.getImageUrl());
+        producto.reemplazarImagenes(productoRequest.getImagenes());
         producto.setPrecio(productoRequest.getPrecio());
         producto.setStock(productoRequest.getStock());
         producto.setCategoria(obtenerCategoria(productoRequest.getCategoriaId()));
@@ -200,13 +205,15 @@ public class ProductoService {
     public ProductoResponseDTO updateProducto(Long id, ProductoRequestDTO productoRequest, String email) {
         validarPrecio(productoRequest.getPrecio());
         validarStock(productoRequest.getStock());
+        validarImagenes(productoRequest.getImagenes());
 
         Producto producto = obtenerProducto(id);
         validarDueno(producto, email);
 
         producto.setNombre(productoRequest.getNombre());
         producto.setDescription(productoRequest.getDescripcion());
-        producto.setImageUrl(productoRequest.getImageUrl());
+        // Las imágenes que ya no vienen en la lista se borran de la base (orphanRemoval)
+        producto.reemplazarImagenes(productoRequest.getImagenes());
         producto.setPrecio(productoRequest.getPrecio());
         producto.setStock(productoRequest.getStock());
         producto.setCategoria(obtenerCategoria(productoRequest.getCategoriaId()));
@@ -281,13 +288,27 @@ public class ProductoService {
                 .orElseThrow(() -> new UsuarioNotFoundException(email));
     }
 
+    // Una publicación lleva entre 1 y 6 fotos (la consigna pide "una o más")
+    private void validarImagenes(List<String> imagenes) {
+        if (imagenes == null || imagenes.isEmpty()) {
+            throw new ImagenInvalidaException("El producto debe tener al menos una imagen");
+        }
+        if (imagenes.size() > MAXIMO_IMAGENES) {
+            throw new ImagenInvalidaException("El producto puede tener como máximo " + MAXIMO_IMAGENES + " imágenes");
+        }
+        if (imagenes.stream().anyMatch(url -> url == null || url.isBlank())) {
+            throw new ImagenInvalidaException("Las imágenes no pueden estar vacías");
+        }
+    }
+
     // Convierte la entidad en el DTO que se expone en la API
     private ProductoResponseDTO toDTO(Producto producto) {
         return new ProductoResponseDTO(
                 producto.getId(),
                 producto.getNombre(),
                 producto.getDescription(),
-                producto.getImageUrl(),
+                producto.getImagenPrincipal(),
+                producto.getImagenes().stream().map(ProductoImagen::getUrl).toList(),
                 producto.getPrecio(),
                 producto.getStock(),
                 producto.getStock() > 0,

@@ -237,7 +237,7 @@ public class CarritoService {
                     return new CarritoItemDTO(
                             producto.getId(),
                             producto.getNombre(),
-                            producto.getImageUrl(),
+                            producto.getImagenPrincipal(),
                             producto.getPrecio(),
                             item.getCantidad(),
                             producto.getPrecio() * item.getCantidad(),
